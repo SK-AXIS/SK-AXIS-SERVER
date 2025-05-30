@@ -20,18 +20,18 @@ public class CustomUserDetail implements UserDetails{
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(user.getUserType().getValue()));
+        authorities.add(new SimpleGrantedAuthority(user.getRole().getValue()));
         return authorities;
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return user.getPasswordHash();
     }
 
     @Override
     public String getUsername() {
-        return user.getUserName();
+        return user.getUsername();
     }
 
     public String getName() {
@@ -39,7 +39,7 @@ public class CustomUserDetail implements UserDetails{
     }
 
     public String getUserType() {
-        return user.getUserType().getValue();
+        return user.getRole().getValue();
     }
 
     @Override

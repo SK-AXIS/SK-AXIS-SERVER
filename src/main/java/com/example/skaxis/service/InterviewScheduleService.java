@@ -73,12 +73,12 @@ public class InterviewScheduleService {
         // 면접별로 시간대 생성
         for (Interview interview : interviews) {
             String timeRange = formatTimeRange(interview.getScheduledAt());
-            String slotKey = interview.getRoomId() + "_" + timeRange;
+            String slotKey = interview.getRoomNo() + "_" + timeRange;
             
             TimeSlotDto timeSlot = timeSlotMap.computeIfAbsent(slotKey, k -> {
                 TimeSlotDto slot = new TimeSlotDto();
                 slot.setId("ts_" + interview.getInterviewId());
-                slot.setRoomId(interview.getRoomId() != null ? interview.getRoomId() : "room1");
+                slot.setRoomId(interview.getRoomNo() != null ? interview.getRoomNo() : "room1");
                 slot.setTimeRange(timeRange);
                 slot.setInterviewerIds(new ArrayList<>());
                 slot.setCandidateIds(new ArrayList<>());
@@ -88,7 +88,7 @@ public class InterviewScheduleService {
             // 면접관 정보 추가
             List<InterviewerAssignment> assignments = interviewerAssignmentRepository.findByInterviewId(interview.getInterviewId());
             for (InterviewerAssignment assignment : assignments) {
-                String interviewerId = "i" + assignment.getUserName();
+                String interviewerId = "i" + assignment.getUserId();
                 if (!timeSlot.getInterviewerIds().contains(interviewerId)) {
                     timeSlot.getInterviewerIds().add(interviewerId);
                 }
@@ -137,10 +137,10 @@ public class InterviewScheduleService {
         List<PersonDto> people = new ArrayList<>();
         
         // 면접관 정보 추가
-        List<User> interviewers = userRepository.findByUserType(Role.INTERVIEWER);
+        List<User> interviewers = userRepository.findByRole(Role.INTERVIEWER);
         for (User interviewer : interviewers) {
             people.add(new PersonDto(
-                "i" + interviewer.getUserName(),
+                "i" + interviewer.getUsername(),
                 interviewer.getName(),
                 "interviewer"
             ));

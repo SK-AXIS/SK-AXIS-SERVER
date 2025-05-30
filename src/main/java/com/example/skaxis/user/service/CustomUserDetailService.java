@@ -20,9 +20,9 @@ public class CustomUserDetailService implements UserDetailsService,UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         //CustomUserDetails 객체를 생성하여 넘겨줘야한다.
-        User user = userRepository.findByUserName(userName);
+        User user = userRepository.findByUsername(username);
 
         if (user == null)
             return null;
@@ -32,14 +32,14 @@ public class CustomUserDetailService implements UserDetailsService,UserService {
     //UserService method
     @Override
     public User save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         userRepository.save(user);
         return user;
     }
 
     @Override
-    public User findByUserName(String userName) {
-        return userRepository.findByUserName(userName);
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
 }

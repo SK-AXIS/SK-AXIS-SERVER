@@ -10,7 +10,7 @@ public class LoginResponse {
     private final Role userType;
 
     public LoginResponse(User user) {
-        this.username = user.getUserName();
-        this.userType = user.getUserType();
+        this.username = user.getUsername();
+        this.userType = user.getRole();
     }
 }

@@ -57,12 +57,12 @@ public class JWTFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        String userName = jwtUtil.getUserNameByAccessToken(token);
+        String username = jwtUtil.getUserNameByAccessToken(token);
         String role = jwtUtil.getUserRoleByAccessToken(token);
         User user = new User();
-        user.setUserName(userName);
-        user.setPassword("tmp");
-        user.setUserType(Role.valueOf(role));
+        user.setUsername(username);
+        user.setPasswordHash("tmp");
+        user.setRole(Role.valueOf(role));
 
         CustomUserDetail customUserDetail = new CustomUserDetail(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(customUserDetail, null, customUserDetail.getAuthorities());

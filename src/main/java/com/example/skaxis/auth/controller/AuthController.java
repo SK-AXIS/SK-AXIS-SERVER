@@ -34,18 +34,18 @@ public class AuthController {
                 interviewerSignupRequest.getName(), Role.INTERVIEWER);
     }
 
-    private ResponseEntity<?> signup(String userName,String password,String name,Role userType) {
+    private ResponseEntity<?> signup(String username, String password, String name, Role role) {
         try{
             //사용자 중복 확인
-            if(userService.findByUserName(userName) != null) {
+            if(userService.findByUsername(username) != null) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
             }
 
             User user = new User();
-            user.setUserName(userName);
-            user.setPassword(password);
+            user.setUsername(username);
+            user.setPasswordHash(password);
             user.setName(name);
-            user.setUserType(userType);
+            user.setRole(role);
 
             userService.save(user);
             return ResponseEntity.status(HttpStatus.CREATED).body("Signup successful");
@@ -75,15 +75,15 @@ public class AuthController {
         String role = jwtUtil.getUserRoleByRefreshToken(reissueToken);
 
         User user = new User();
-        user.setUserName(username);
-        user.setUserType(Role.valueOf(role));
+        user.setUsername(username);
+        user.setRole(Role.valueOf(role));
 
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
         //기존의 refresh token 삭제,새로 저장
         jwtUtil.deleteRefreshToken(reissueToken);
-        jwtUtil.addRefreshToken(refreshToken,user.getUserName());
+        jwtUtil.addRefreshToken(refreshToken,user.getUsername());
 
         //재발급시 refreshToken도 재발급 => Refresh Rotate 방식
         response.addHeader(AuthConstants.JWT_ISSUE_HEADER, AuthConstants.ACCESS_PREFIX + accessToken);
