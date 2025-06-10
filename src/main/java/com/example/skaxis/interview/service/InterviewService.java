@@ -11,6 +11,7 @@ import com.example.skaxis.interview.repository.InterviewRepository;
 import com.example.skaxis.interview.repository.IntervieweeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +27,9 @@ import com.example.skaxis.user.repository.UserRepository;
 @Slf4j
 public class InterviewService {
 
+    private final com.example.skaxis.interview.repository.InterviewIntervieweeRepository interviewIntervieweeRepository;
+    private final com.example.skaxis.interview.repository.InterviewResultRepository interviewResultRepository;
+    private final com.example.skaxis.question.repository.QuestionRepository questionRepository;
     private final InterviewRepository interviewRepository;
     private final IntervieweeRepository intervieweeRepository;
     private final UserRepository userRepository;
@@ -49,11 +53,11 @@ public class InterviewService {
                 .map(i -> i.getInterviewee())
                 .toList();
             interviewSession.setInterviewees(intervieweeList.toArray(new Interviewee[0]));
-    
+
             // 면접관 정보를 문자열로만 처리 (User 엔티티 사용하지 않음)
             String interviewersStr = interview.getInterviewers();
             if (interviewersStr != null && !interviewersStr.isEmpty()) {
-                String[] interviewerNames = interviewersStr.split(",");
+                interviewersStr.split(",");
                 // User 배열 대신 문자열 배열로 처리하거나, 더미 User 객체 생성
                 // GetInterviewsResponseDto.InterviewSession의 setInterviewers가 User[] 타입을 받는다면
                 // 더미 User 객체를 생성해야 합니다
@@ -61,7 +65,7 @@ public class InterviewService {
             } else {
                 interviewSession.setInterviewers(new User[0]);
             }
-    
+
             getInterviewsResponseDto.getInterviewSessions().add(interviewSession);
         }
         return getInterviewsResponseDto;
@@ -92,7 +96,7 @@ public class InterviewService {
         if (updateInterviewRequestDto.getRound() != null) {
             interview.setRound(updateInterviewRequestDto.getRound());
         }
-        if (updateInterviewRequestDto.getScheduledAt() != null) {   
+        if (updateInterviewRequestDto.getScheduledAt() != null) {
             interview.setScheduledAt(java.time.LocalDateTime.parse(updateInterviewRequestDto.getScheduledAt()));
         }
         if (updateInterviewRequestDto.getOrderNo() != null) {
@@ -146,7 +150,7 @@ public class InterviewService {
                 i.getInterviewee().getApplicantCode(),
                 i.getCreatedAt().toString()))
             .toArray(GetInterviewByIdResponseDto.IntervieweeDto[]::new));
-        
+
         // 면접관 정보를 문자열로만 처리 (User 엔티티 사용하지 않음)
         String interviewersStr = interview.getInterviewers();
         if (interviewersStr != null && !interviewersStr.isEmpty()) {
@@ -167,7 +171,7 @@ public class InterviewService {
         } else {
             getInterviewByIdResponseDto.setInterviewers(new GetInterviewByIdResponseDto.InterviewerDto[0]);
         }
-        
+
         return getInterviewByIdResponseDto;
     }
 
@@ -200,4 +204,53 @@ public class InterviewService {
     public List<Interview> findAllOrderByScheduledAt() {
         return interviewRepository.findAllOrderByScheduledAt();
     }
+
+    public Interview findById(Long recentInterviewId) {
+        return interviewRepository.findById(recentInterviewId)
+            .orElseThrow(() -> new RuntimeException("Interview not found with ID: " + recentInterviewId));
+    }
+
+    // === 전체 면접 및 연관 데이터 삭제 ===
+    @Transactional
+    public void deleteAllInterviews(boolean deleteFiles) {
+        // InterviewResult 파일 및 데이터 삭제
+        if (deleteFiles) {
+            interviewResultRepository.findAll().forEach(result -> {
+                deleteFileIfExists(result.getPdfPath());
+                deleteFileIfExists(result.getExcelPath());
+                deleteFileIfExists(result.getSttPath());
+            });
+        }
+        interviewResultRepository.deleteAll();
+
+        // InterviewInterviewee 파일 및 데이터 삭제
+        if (deleteFiles) {
+            interviewIntervieweeRepository.findAll().forEach(ii -> {
+                deleteFileIfExists(ii.getPdfPath());
+                deleteFileIfExists(ii.getExcelPath());
+                deleteFileIfExists(ii.getSttPath());
+            });
+        }
+        interviewIntervieweeRepository.deleteAll();
+
+        // Question 전체 삭제
+        questionRepository.deleteAll();
+
+        // Interview 전체 삭제
+        interviewRepository.deleteAll();
+    }
+
+    private void deleteFileIfExists(String path) {
+        if (path != null && !path.isBlank()) {
+            try {
+                java.io.File file = new java.io.File(path);
+                if (file.exists()) {
+                    file.delete();
+                }
+            } catch (Exception e) {
+                log.warn("파일 삭제 실패: {}", path);
+            }
+        }
+    }
+
 }
