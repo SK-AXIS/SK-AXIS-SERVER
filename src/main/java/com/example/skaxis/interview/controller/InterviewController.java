@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
-
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @Slf4j
 @RestController
@@ -106,5 +106,19 @@ public class InterviewController {
             log.error("Error fetching interview by ID: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
         }
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @io.swagger.v3.oas.annotations.Operation(
+        summary = "모든 면접 세션 및 관련 데이터 삭제",
+        description = "⚠️ 이 API는 전체 면접 세션과 관련된 모든 지원자 연결, 질문, 평가 결과 파일 경로 등을 영구적으로 삭제합니다. 관리자만 사용해야 합니다.",
+        responses = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "전체 면접 세션 삭제 성공")
+        }
+    )
+    public ResponseEntity<Void> deleteAllInterviews(@RequestParam(value = "deleteFiles", required = false, defaultValue = "false") boolean deleteFiles) {
+        interviewService.deleteAllInterviewsAndRelatedData(deleteFiles);
+        return ResponseEntity.noContent().build();
     }
 }

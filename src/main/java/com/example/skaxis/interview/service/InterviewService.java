@@ -9,6 +9,7 @@ import com.example.skaxis.interview.model.InterviewInterviewee;
 import com.example.skaxis.interview.model.Interviewee;
 import com.example.skaxis.interview.repository.InterviewRepository;
 import com.example.skaxis.interview.repository.IntervieweeRepository;
+import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,9 +26,33 @@ import com.example.skaxis.user.repository.UserRepository;
 @RequiredArgsConstructor
 @Slf4j
 public class InterviewService {
+    // ... (생략)
+    /**
+     * 모든 면접, 면접자, 면접-면접자 관계 데이터를 삭제합니다.
+     * @param deleteFiles true면 면접자 관련 파일도 삭제
+     */
+    public void deleteAllInterviewsAndRelatedData(boolean deleteFiles) {
+        // 삭제 순서 중요: 관계 → 면접자 → 면접
+        interviewIntervieweeRepository.deleteAll();
+        intervieweeRepository.deleteAll();
+        interviewRepository.deleteAll();
+        if (deleteFiles) {
+            // TODO: 실제 파일 시스템/스토리지에서 면접자 관련 파일 삭제 로직 구현
+            // 예시: FileUtils.deleteDirectory(new File("output/"));
+        }
+    }
+
+    /**
+     * 기존 메서드(호환성 유지용)
+     */
+    public void deleteAllInterviewsAndRelatedData() {
+        deleteAllInterviewsAndRelatedData(false);
+    }
+
 
     private final InterviewRepository interviewRepository;
     private final IntervieweeRepository intervieweeRepository;
+    private final InterviewIntervieweeRepository interviewIntervieweeRepository;
     private final UserRepository userRepository;
 
     public GetInterviewsResponseDto getAllInterviews() {
