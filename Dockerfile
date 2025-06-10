@@ -1,63 +1,40 @@
-FROM python:3.9-slim
-
+# 빌드 스테이지
+FROM gradle:8.7-jdk17 AS build
 WORKDIR /app
 
-# 필요한 시스템 패키지 설치
-RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libsm6 \
-    libxrender1 \
-    libxext6 \
-    libpulse0 \
-    libportaudio2 \
-    ffmpeg \
-    build-essential \
-    portaudio19-dev \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# apt-get 업데이트 및 dos2unix 설치 (Windows 라인 엔딩 문제 해결용)
+RUN apt-get update && apt-get install -y dos2unix
 
-# 의존성 파일 복사 및 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# OpenCV, MediaPipe 및 STT 관련 패키지 설치
-RUN pip install --no-cache-dir \
-    opencv-python==4.9.0.80 \
-    mediapipe==0.10.5 \
-    openai-whisper \
-    google-cloud-speech \
-    pyaudio \
-    pydub \
-    fastapi \
-    uvicorn \
-    python-multipart \
-    websockets \
-    aiofiles \
-    httpx \
-    reportlab \
-    pandas \
-    openpyxl \
-    python-dotenv
-
-# 애플리케이션 코드 복사
+# Gradle Wrapper 및 프로젝트 파일 복사
+COPY gradlew gradlew
+COPY gradlew.bat gradlew.bat
+COPY gradle gradle
 COPY . .
 
+# gradlew 개행문자 변환 및 권한 부여
+RUN dos2unix gradlew
+RUN chmod +x ./gradlew
+
+# Gradle 빌드 (테스트 생략)
+RUN ./gradlew build -x test
+
+# 실행 이미지 생성
+FROM openjdk:17-slim
+WORKDIR /app
+
+# 빌드 결과 JAR 복사
+COPY --from=build /app/build/libs/*.jar app.jar
+
 # 출력 디렉토리 생성
-RUN mkdir -p output
-RUN mkdir -p app/uploads
-RUN mkdir -p app/temp
-RUN mkdir -p static
+RUN mkdir -p /shared-output
 
 # 환경 변수 설정
-ENV OPENAI_API_KEY=""
-ENV SPRING_API_URL="http://springboot:8080/api/v1"
-ENV OUTPUT_DIR="/app/output"
-ENV PYTHONPATH="${PYTHONPATH}:/app"
-ENV PYTHONUNBUFFERED=1
+ENV SPRING_DATASOURCE_URL="jdbc:mysql://mysql:3306/skaxis?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+ENV SPRING_DATASOURCE_USERNAME="skaxis"
+ENV SPRING_DATASOURCE_PASSWORD="skaxispassword"
+ENV SPRING_JPA_HIBERNATE_DDL_AUTO="update"
+ENV FASTAPI_URL="http://fastapi:8000/api/v1"
+ENV OUTPUT_DIR="/shared-output"
 
-# 포트 노출
-EXPOSE 8000
-
-# 애플리케이션 실행
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
