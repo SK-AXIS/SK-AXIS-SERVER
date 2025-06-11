@@ -1,19 +1,10 @@
 # 빌드 스테이지
+# 빌드 스테이지
 FROM gradle:8.7-jdk17 AS build
 WORKDIR /app
 
-# apt-get 업데이트 및 dos2unix 설치 (Windows 라인 엔딩 문제 해결용)
-RUN apt-get update && apt-get install -y dos2unix
-
 # Gradle Wrapper 및 프로젝트 파일 복사
-COPY gradlew gradlew
-COPY gradlew.bat gradlew.bat
-COPY gradle gradle
 COPY . .
-
-# gradlew 개행문자 변환 및 권한 부여
-RUN dos2unix gradlew
-RUN chmod +x ./gradlew
 
 # Gradle 빌드 (테스트 생략)
 RUN ./gradlew build -x test
