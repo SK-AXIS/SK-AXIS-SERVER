@@ -3,6 +3,7 @@ package com.example.skaxis.question.model;
 import com.example.skaxis.interview.model.Interview;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,5 +34,6 @@ public class Question {
     // 면접과의 관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interview_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Interview interview;
 }
