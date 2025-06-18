@@ -37,6 +37,16 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //request 에서 Authorization 헤더를 찾음.
         String authorizationHeader = request.getHeader(AuthConstants.JWT_ISSUE_HEADER);
+        
+        // Authorization 헤더가 없거나 Bearer로 시작하지 않는 경우 처리
+        if (authorizationHeader == null || !authorizationHeader.startsWith(AuthConstants.ACCESS_PREFIX)) {
+            log.warn("Authorization header is missing or invalid for URI: " + request.getRequestURI());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            PrintWriter writer = response.getWriter();
+            writer.print("Authorization header is required");
+            return;
+        }
+        
         String token = authorizationHeader.replace(AuthConstants.ACCESS_PREFIX, "");
 
         if(jwtUtil.validateAccessToken(token)==TokenStatus.INVALID) {
