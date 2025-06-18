@@ -2,6 +2,10 @@ package com.example.skaxis.interview.controller;
 
 import com.example.skaxis.interview.dto.*;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -141,16 +145,47 @@ public class InterviewController {
     }
     
     @GetMapping("/schedule")
-    public ResponseEntity<?> getInterviewSchedule(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    @Operation(summary = "면접 일정 조회", description = "다양한 조건으로 면접 일정을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "일정을 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<?> getInterviewSchedules(
+            @Parameter(description = "면접 날짜 (YYYY-MM-DD)", example = "2024-01-15")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(description = "면접 상태별 필터 (SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED)")
+            @RequestParam(required = false) String status,
+            @Parameter(description = "상세 정보 포함 여부", example = "true")
+            @RequestParam(required = false, defaultValue = "false") boolean detailed) {
         try {
-            SimpleInterviewScheduleResponseDto schedule = intervieweeService.getInterviewSchedule(date);
-            if (schedule == null || schedule.getSchedules().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No schedule found for the given date");
+            // 상세 정보가 요청되고 날짜가 지정된 경우
+            if (detailed && date != null) {
+                InterviewScheduleResponseDto detailedSchedule = intervieweeService.getDetailedInterviewSchedule(date);
+                if (detailedSchedule == null) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No detailed schedule found for the given date");
+                }
+                return ResponseEntity.ok(detailedSchedule);
             }
-            return ResponseEntity.ok(schedule);
+            
+            // 특정 날짜의 일정 조회
+            if (date != null) {
+                SimpleInterviewScheduleResponseDto schedule = intervieweeService.getInterviewSchedule(date);
+                if (schedule == null || schedule.getSchedules().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No schedule found for the given date");
+                }
+                return ResponseEntity.ok(schedule);
+            }
+            
+            // 전체 일정 조회 (상태 필터 포함)
+            SimpleInterviewScheduleResponseDto schedules = intervieweeService.getAllInterviewSchedules(status);
+            if (schedules == null || schedules.getSchedules().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No schedules found");
+            }
+            return ResponseEntity.ok(schedules);
+            
         } catch (Exception e) {
-            log.error("Error fetching interview schedule: {}", e.getMessage());
+            log.error("Error fetching interview schedules: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
         }
     }

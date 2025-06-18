@@ -14,6 +14,7 @@ import com.example.skaxis.interview.dto.common.PersonDto;
 import com.example.skaxis.interview.dto.common.RoomDto;
 import com.example.skaxis.interview.dto.common.TimeSlotDto;
 import com.example.skaxis.user.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -410,4 +411,47 @@ public class IntervieweeService {
             .build();
     }
 
+    public IntervieweeListResponseDto getInterviewees() {
+        List<Interviewee> interviewees = intervieweeRepository.findAll();
+        List<IntervieweeResponseDto> responseList = interviewees.stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+
+        return new IntervieweeListResponseDto(responseList, responseList.size());
+    }
+
+    public IntervieweeResponseDto getIntervieweeById(Long id) {
+        Interviewee interviewee = findById(id);
+        return convertToResponseDto(interviewee);
+    }
+
+    public IntervieweeResponseDto createInterviewee(@Valid IntervieweeResponseDto request) {
+        // 요청 DTO에서 Interviewee 엔티티로 변환
+        Interviewee interviewee = Interviewee.builder()
+                .name(request.getApplicantName())
+                .score(request.getScore())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        // 면접자 저장
+        Interviewee savedInterviewee = saveInterviewee(interviewee);
+
+        // 응답 DTO로 변환
+        return convertToResponseDto(savedInterviewee);
+    }
+
+    public IntervieweeResponseDto updateInterviewee(Long id, @Valid IntervieweeResponseDto request) {
+        Interviewee interviewee = findById(id);
+
+        // 요청 DTO에서 Interviewee 엔티티로 업데이트
+        interviewee.setName(request.getApplicantName());
+        interviewee.setScore(request.getScore());
+        // createdAt은 수정하지 않음 (생성 시점 유지)
+
+        // 면접자 저장
+        Interviewee updatedInterviewee = saveInterviewee(interviewee);
+
+        // 응답 DTO로 변환
+        return convertToResponseDto(updatedInterviewee);
+    }
 }
