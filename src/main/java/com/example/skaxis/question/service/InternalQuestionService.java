@@ -9,7 +9,6 @@ import com.example.skaxis.question.repository.QuestionRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +26,6 @@ public class InternalQuestionService {
      * @param intervieweeIds 면접자 ID 목록
      * @return 면접자 ID별 질문 목록 Map
      */
-    @Transactional(readOnly = true)
     public Map<String, List<Question>> getQuestionsForMultipleInterviewees(List<Long> intervieweeIds) {
         Map<String, List<Question>> questionsPerInterviewee = new HashMap<>();
         
