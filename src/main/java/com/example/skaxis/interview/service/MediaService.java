@@ -1,14 +1,16 @@
 package com.example.skaxis.interview.service;
 
-import com.example.skaxis.interview.model.Interview;
-import com.example.skaxis.interview.repository.InterviewRepository;
-import com.example.skaxis.interview.model.Interviewee;
-import com.example.skaxis.interview.repository.IntervieweeRepository;
-import com.example.skaxis.interview.model.InterviewInterviewee;
-import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;
-import com.example.skaxis.interview.dto.common.FileUploadResponseDto;
 import com.example.skaxis.interview.dto.common.ExcelParseResponseDto;
+import com.example.skaxis.interview.dto.common.FileUploadResponseDto;
 import com.example.skaxis.interview.dto.common.InterviewScheduleExcelDto;
+import com.example.skaxis.interview.model.Interview;
+import com.example.skaxis.interview.model.InterviewInterviewee;
+import com.example.skaxis.interview.model.Interviewee;
+import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;
+import com.example.skaxis.interview.repository.InterviewRepository;
+import com.example.skaxis.interview.repository.IntervieweeRepository;
+import com.example.skaxis.question.model.Question;
+import com.example.skaxis.question.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -40,6 +42,7 @@ public class MediaService {
     private final InterviewIntervieweeRepository interviewIntervieweeRepository;
     private final InterviewRepository interviewRepository;
     private final IntervieweeRepository intervieweeRepository;
+    private final QuestionRepository questionRepository; // 의존성 추가
 
     @Value("${app.upload.dir:/uploads}")
     private String uploadDir;
@@ -211,7 +214,12 @@ public class MediaService {
 
         interview = interviewRepository.save(interview);
         log.info("면접 저장 완료: interviewId={}", interview.getInterviewId());
-        // 2. Interviewee 생성/조회 및 InterviewInterviewee 관계 생성
+
+        // 2. 질문 저장
+        saveQuestions(interview.getInterviewId(), scheduleDto.getCommonQuestions(), "공통질문");
+        saveQuestions(interview.getInterviewId(), scheduleDto.getIndividualQuestions(), "개별질문");
+
+        // 3. Interviewee 생성/조회 및 InterviewInterviewee 관계 생성
         for (String intervieweeName : scheduleDto.getIntervieweeNames()) {
             Interviewee interviewee = getOrCreateInterviewee(intervieweeName);
 
@@ -223,6 +231,20 @@ public class MediaService {
 
             interviewIntervieweeRepository.save(interviewInterviewee);
             log.info("관계 저장 완료: interviewId={}, intervieweeId={}", interview.getInterviewId(), interviewee.getIntervieweeId());
+        }
+    }
+
+    private void saveQuestions(Long interviewId, List<String> questions, String type) {
+        if (questions != null && !questions.isEmpty()) {
+            for (String content : questions) {
+                Question question = Question.builder()
+                        .interviewId(interviewId)
+                        .type(type)
+                        .content(content)
+                        .build();
+                questionRepository.save(question);
+                log.info("{} 저장 완료: interviewId={}, content={}", type, interviewId, content);
+            }
         }
     }
 
@@ -290,6 +312,22 @@ public class MediaService {
                         .collect(Collectors.toList());
             }
 
+            // 공통질문 (F열)
+            Cell commonQuestionCell = row.getCell(5);
+            String commonQuestionStr = getCellValueAsString(commonQuestionCell);
+            List<String> commonQuestions = Arrays.stream(commonQuestionStr.split("\\|"))
+                    .map(String::trim)
+                    .filter(q -> !q.isEmpty())
+                    .collect(Collectors.toList());
+
+            // 개별질문 (G열)
+            Cell individualQuestionCell = row.getCell(6);
+            String individualQuestionStr = getCellValueAsString(individualQuestionCell);
+            List<String> individualQuestions = Arrays.stream(individualQuestionStr.split("\\|"))
+                    .map(String::trim)
+                    .filter(q -> !q.isEmpty())
+                    .collect(Collectors.toList());
+
             return InterviewScheduleExcelDto.builder()
                     .interviewDate(interviewDate)
                     .startTime(startTime)
@@ -297,6 +335,8 @@ public class MediaService {
                     .roomName(roomName)
                     .interviewerNames(interviewerNames)
                     .intervieweeNames(intervieweeNames)
+                    .commonQuestions(commonQuestions)
+                    .individualQuestions(individualQuestions)
                     .build();
 
         } catch (Exception e) {
