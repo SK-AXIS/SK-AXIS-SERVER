@@ -20,4 +20,6 @@ public class InterviewScheduleExcelDto {
     private String roomName;
     private List<String> interviewerNames;
     private List<String> intervieweeNames;
+    private List<String> commonQuestions;
+    private List<String> individualQuestions;
 }
