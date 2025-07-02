@@ -5,6 +5,7 @@ import com.example.skaxis.interview.dto.InterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.SimpleInterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeResponseDto;
+import com.example.skaxis.interview.dto.interviewee.UpdateIntervieweeRequestDto;
 import com.example.skaxis.interview.model.Interview;
 import com.example.skaxis.interview.model.Interviewee;
 import com.example.skaxis.interview.repository.IntervieweeRepository;
@@ -17,7 +18,7 @@ import com.example.skaxis.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -69,6 +70,21 @@ public class IntervieweeService {
             throw new RuntimeException("Interviewee not found with ID: " + id);
         }
         intervieweeRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void updateInterviewee(Long intervieweeId, UpdateIntervieweeRequestDto requestDto) {
+        Interviewee interviewee = findById(intervieweeId);
+
+        if (requestDto.getName() != null && !requestDto.getName().isEmpty()) {
+            interviewee.setName(requestDto.getName());
+        }
+
+        if (requestDto.getScore() != null) {
+            interviewee.setScore(requestDto.getScore());
+        }
+
+        intervieweeRepository.save(interviewee);
     }
 
     // 면접 일정 관련 기능들 (InterviewService와 협력)
@@ -346,8 +362,8 @@ public class IntervieweeService {
                         .filter(interview -> status == null || status.isEmpty() || interview.getStatus().name().equalsIgnoreCase(status))
                         .map(Interview::getInterviewId)
                         .collect(Collectors.toList());
-                // TODO: N+1 문제가 발생할 수 있으므로 fetch join을 사용하는 것이 좋습니다.
-                interviewInterviewees = interviewIntervieweeRepository.findByInterviewIdIn(interviewIds);
+                // N+1 문제를 해결하기 위해 fetch join을 사용합니다.
+                interviewInterviewees = interviewIntervieweeRepository.findAllWithInterviewAndIntervieweeByInterviewIdIn(interviewIds);
             }
 
             // 필터링된 InterviewInterviewee 목록을 DTO로 변환

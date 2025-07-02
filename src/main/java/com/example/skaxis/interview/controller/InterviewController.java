@@ -2,6 +2,7 @@ package com.example.skaxis.interview.controller;
 
 import com.example.skaxis.interview.dto.*;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
+import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
 import com.example.skaxis.question.dto.QuestionDto;
 import com.example.skaxis.question.dto.StartInterviewRequestDto;
 import com.example.skaxis.question.dto.StartInterviewResponseDto;
@@ -192,6 +193,34 @@ public class InterviewController {
         } catch (Exception e) {
             log.error("Error fetching detailed interview schedule: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+        }
+    }
+
+    @PutMapping("/{interviewId}/interviewees/{intervieweeId}")
+    public ResponseEntity<?> updateIntervieweeSchedule(
+            @PathVariable("interviewId") Long interviewId,
+            @PathVariable("intervieweeId") Long intervieweeId,
+            @RequestBody UpdateIntervieweeScheduleRequestDto requestDto) {
+        try {
+            if (interviewId == null || interviewId <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Invalid interview ID"));
+            }
+            if (intervieweeId == null || intervieweeId <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Invalid interviewee ID"));
+            }
+            if (requestDto == null || requestDto.getScheduledAt() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Invalid request data"));
+            }
+            
+            interviewService.updateIntervieweeSchedule(interviewId, intervieweeId, requestDto);
+            return ResponseEntity.ok().body(Map.of("message", "Interviewee schedule updated successfully"));
+        } catch (Exception e) {
+            log.error("Error updating interviewee schedule: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Internal Server Error"));
         }
     }
 
