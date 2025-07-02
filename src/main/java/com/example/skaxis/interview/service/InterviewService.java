@@ -10,6 +10,7 @@ import com.example.skaxis.interview.model.InterviewInterviewee;
 import com.example.skaxis.interview.model.Interviewee;
 import com.example.skaxis.interview.repository.InterviewRepository;
 import com.example.skaxis.interview.repository.IntervieweeRepository;
+import com.example.skaxis.question.model.Question;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,9 +39,9 @@ public class InterviewService {
     public void updateIntervieweeSchedule(Long interviewId, Long intervieweeId, UpdateIntervieweeScheduleRequestDto requestDto) {
         InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository.findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
                 .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
-
+    
         Interview originalInterview = interviewInterviewee.getInterview();
-
+    
         // 새로운 Interview 객체 생성
         Interview newInterview = new Interview();
         newInterview.setRoomNo(originalInterview.getRoomNo());
@@ -48,14 +49,15 @@ public class InterviewService {
         newInterview.setOrderNo(originalInterview.getOrderNo());
         newInterview.setStatus(originalInterview.getStatus());
         newInterview.setInterviewers(originalInterview.getInterviewers());
-        newInterview.setScheduledAt(requestDto.getScheduledAt()); // 새로운 면접 시간 설정
-
+        newInterview.setScheduledAt(requestDto.getStartAt()); // startAt을 면접 시작 시간으로 설정
+        newInterview.setScheduledEndAt(requestDto.getEndAt()); // endAt을 면접 종료 시간으로 설정
+    
         Interview savedNewInterview = interviewRepository.save(newInterview);
-
+    
         // 기존 연결 정보 업데이트
         interviewInterviewee.setInterview(savedNewInterview);
         interviewIntervieweeRepository.save(interviewInterviewee);
-
+    
         // 기존 면접에 더 이상 면접자가 없는 경우 삭제
         long remainingInterviewees = interviewIntervieweeRepository.countByInterviewId(originalInterview.getInterviewId());
         if (remainingInterviewees == 0) {
@@ -112,7 +114,39 @@ public class InterviewService {
         interviewRepository.save(interview);
     }
 
+    @Transactional
+    public void deleteInterviewInterviewee(Long interviewId, Long intervieweeId) {
+        // 1. InterviewInterviewee 찾기
+        InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository
+            .findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
+            .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
+        
+        // 2. 관련된 Question 삭제
+        List<Question> questions = questionRepository.findByInterviewId(interviewId);
+        questionRepository.deleteAll(questions);
+        
+        // 3. InterviewInterviewee 삭제
+        interviewIntervieweeRepository.delete(interviewInterviewee);
+        
+        // 4. 해당 Interview에 더 이상 InterviewInterviewee가 없으면 Interview도 삭제
+        long remainingCount = interviewIntervieweeRepository.countByInterviewId(interviewId);
+        if (remainingCount == 0) {
+            interviewRepository.deleteById(interviewId);
+        }
+    }
+
+    // 기존 deleteInterview 메소드 개선
+    @Transactional
     public void deleteInterview(Long interviewId) {
+        // 1. 관련된 Question 삭제
+        List<Question> questions = questionRepository.findByInterviewId(interviewId);
+        questionRepository.deleteAll(questions);
+        
+        // 2. 관련된 InterviewInterviewee 삭제
+        List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByInterviewId(interviewId);
+        interviewIntervieweeRepository.deleteAll(interviewInterviewees);
+        
+        // 3. Interview 삭제
         interviewRepository.deleteById(interviewId);
     }
 

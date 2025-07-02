@@ -1,12 +1,14 @@
 package com.example.skaxis.interview.dto.interview;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Getter
+@Data
 @NoArgsConstructor
 public class UpdateIntervieweeScheduleRequestDto {
-    private LocalDateTime scheduledAt;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
 }
