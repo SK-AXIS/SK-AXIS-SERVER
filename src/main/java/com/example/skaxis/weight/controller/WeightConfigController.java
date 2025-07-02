@@ -31,7 +31,7 @@ public class WeightConfigController {
      * 현재 활성화된 가중치 설정 조회 (다른 서버에서 호출)
      */
     @GetMapping("/active")
-    @Operation(summary = "활성화된 가중치 설정 조회", description = "현재 활성화된 가중치 설정을 조회합니다")
+    @Operation(summary = "활성화된 가중치 설정 조회 (현재 FastAPI 호출에선 이것만 사용)", description = "현재 활성화된 가중치 설정을 조회합니다")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "활성화된 설정이 없음"),

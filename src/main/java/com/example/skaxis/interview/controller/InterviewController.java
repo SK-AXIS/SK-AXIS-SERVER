@@ -33,6 +33,9 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/interviews")
 public class InterviewController {
+    private final InterviewService interviewService;
+    private final IntervieweeService intervieweeService;
+    private final InternalQuestionService internalQuestionService; // 추가
 
     // 전체 면접 및 연관 데이터 삭제 (관리자 권한 필요)
     @DeleteMapping("")
@@ -48,10 +51,6 @@ public class InterviewController {
                 .body(Map.of("message", "면접 전체 삭제 중 서버 오류가 발생했습니다."));
         }
     }
-
-    private final InterviewService interviewService;
-    private final IntervieweeService intervieweeService;
-    private final InternalQuestionService internalQuestionService; // 추가
 
     // 기존 면접 관련 메서드들
     @GetMapping("/all")
@@ -210,17 +209,17 @@ public class InterviewController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Invalid interviewee ID"));
             }
-            if (requestDto == null || requestDto.getScheduledAt() == null) {
+            if (requestDto == null || requestDto.getStartAt() == null || requestDto.getEndAt() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Invalid request data"));
+                        .body(Map.of("message", "Invalid request data"));
             }
-            
+
             interviewService.updateIntervieweeSchedule(interviewId, intervieweeId, requestDto);
             return ResponseEntity.ok().body(Map.of("message", "Interviewee schedule updated successfully"));
         } catch (Exception e) {
             log.error("Error updating interviewee schedule: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Internal Server Error"));
+                    .body(Map.of("message", "Internal Server Error"));
         }
     }
 
@@ -229,21 +228,21 @@ public class InterviewController {
     public ResponseEntity<?> startInterview(@RequestBody StartInterviewRequestDto request) {
         try {
             log.info("면접 시작 요청: {}", request);
-    
+
             if (request.getIntervieweeIds() == null || request.getIntervieweeIds().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("message", "지원자 ID 목록이 필요합니다."));
             }
-    
+
             // Integer List를 Long List로 변환
             List<Long> intervieweeIds = request.getIntervieweeIds().stream()
                     .map(Integer::longValue)
                     .toList();
-    
+
             // InternalQuestionService를 사용하여 질문 조회
             Map<String, List<Question>> questionsPerInterviewee =
                     internalQuestionService.getQuestionsForMultipleInterviewees(intervieweeIds);
-    
+
             // Question을 QuestionDto로 변환
             Map<String, List<QuestionDto>> questionDtosPerInterviewee = new HashMap<>();
             for (Map.Entry<String, List<Question>> entry : questionsPerInterviewee.entrySet()) {
@@ -256,14 +255,14 @@ public class InterviewController {
                         .toList();
                 questionDtosPerInterviewee.put(entry.getKey(), questionDtos);
             }
-    
+
             StartInterviewResponseDto response = new StartInterviewResponseDto(
                     questionDtosPerInterviewee,
                     "success"
             );
-            
+
             return ResponseEntity.ok(response);
-    
+
         } catch (IllegalArgumentException e) {
             log.error("면접 시작 실패 - 잘못된 요청: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -274,7 +273,7 @@ public class InterviewController {
                     .body(Map.of("message", "면접 시작 중 오류가 발생했습니다."));
         }
     }
-    
+
     /**
      * 데이터베이스의 타입을 프론트엔드가 기대하는 형태로 변환
      */
@@ -285,5 +284,24 @@ public class InterviewController {
             return "개별질문";
         }
         return dbType; // 기본값
+    }
+
+    @DeleteMapping("/{interviewId}/interviewees/{intervieweeId}")
+    public ResponseEntity<?> deleteInterviewInterviewee(
+            @PathVariable("interviewId") Long interviewId,
+            @PathVariable("intervieweeId") Long intervieweeId) {
+        try {
+            if (interviewId == null || interviewId <= 0 || intervieweeId == null || intervieweeId <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Invalid interview ID or interviewee ID"));
+            }
+
+            interviewService.deleteInterviewInterviewee(interviewId, intervieweeId);
+            return ResponseEntity.ok().body(Map.of("message", "Interview-Interviewee mapping deleted successfully"));
+        } catch (Exception e) {
+            log.error("Error deleting interview-interviewee mapping: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Internal Server Error"));
+        }
     }
 }
