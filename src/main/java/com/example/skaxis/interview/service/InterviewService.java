@@ -4,6 +4,7 @@ import com.example.skaxis.interview.dto.CreateInterviewRequestDto;
 import com.example.skaxis.interview.dto.GetInterviewByIdResponseDto;
 import com.example.skaxis.interview.dto.GetInterviewsResponseDto;
 import com.example.skaxis.interview.dto.UpdateInterviewRequestDto;
+import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
 import com.example.skaxis.interview.model.Interview;
 import com.example.skaxis.interview.model.InterviewInterviewee;
 import com.example.skaxis.interview.model.Interviewee;
@@ -33,6 +34,35 @@ public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final IntervieweeRepository intervieweeRepository;
     private final UserRepository userRepository;
+    @Transactional
+    public void updateIntervieweeSchedule(Long interviewId, Long intervieweeId, UpdateIntervieweeScheduleRequestDto requestDto) {
+        InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository.findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
+                .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
+
+        Interview originalInterview = interviewInterviewee.getInterview();
+
+        // 새로운 Interview 객체 생성
+        Interview newInterview = new Interview();
+        newInterview.setRoomNo(originalInterview.getRoomNo());
+        newInterview.setRound(originalInterview.getRound());
+        newInterview.setOrderNo(originalInterview.getOrderNo());
+        newInterview.setStatus(originalInterview.getStatus());
+        newInterview.setInterviewers(originalInterview.getInterviewers());
+        newInterview.setScheduledAt(requestDto.getScheduledAt()); // 새로운 면접 시간 설정
+
+        Interview savedNewInterview = interviewRepository.save(newInterview);
+
+        // 기존 연결 정보 업데이트
+        interviewInterviewee.setInterview(savedNewInterview);
+        interviewIntervieweeRepository.save(interviewInterviewee);
+
+        // 기존 면접에 더 이상 면접자가 없는 경우 삭제
+        long remainingInterviewees = interviewIntervieweeRepository.countByInterviewId(originalInterview.getInterviewId());
+        if (remainingInterviewees == 0) {
+            interviewRepository.delete(originalInterview);
+        }
+    }
+
     @Transactional(readOnly = true)
     public GetInterviewsResponseDto getAllInterviews() {
         List<Interview> interviewList = interviewRepository.findAll();

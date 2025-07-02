@@ -3,6 +3,7 @@ package com.example.skaxis.interview.controller;
 import com.example.skaxis.interview.dto.InterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.SimpleInterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
+import com.example.skaxis.interview.dto.interviewee.UpdateIntervieweeRequestDto;
 import com.example.skaxis.interview.service.IntervieweeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,19 @@ public class IntervieweeController {
 
         IntervieweeListResponseDto response = intervieweeService.getInterviewees(date, status, position);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{intervieweeId}")
+    @Operation(summary = "면접 대상자 정보 수정", description = "특정 면접 대상자의 이름 또는 점수를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "404", description = "면접 대상자를 찾을 수 없음")
+    })
+    public ResponseEntity<Void> updateInterviewee(
+            @Parameter(description = "면접 대상자 ID", required = true) @PathVariable Long intervieweeId,
+            @RequestBody UpdateIntervieweeRequestDto requestDto) {
+        intervieweeService.updateInterviewee(intervieweeId, requestDto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/interviews")
