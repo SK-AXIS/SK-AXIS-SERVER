@@ -48,10 +48,12 @@ jobs:
             echo "== Docker 이미지 풀 및 배포 시작 =="
             docker pull ${{ secrets.DOCKER_USERNAME }}/skaxis-server:latest
 
-            docker stop sk-axis-springboot || true
-            docker rm sk-axis-springboot || true
+            # 기존 서비스들 중지
+            docker-compose -f docker-compose.dev.yml down
 
-            docker run -d --name sk-axis-springboot -p 8080:8080 --restart always ${{ secrets.DOCKER_USERNAME }}/skaxis-server:latest
+            # 새로운 이미지로 모든 서비스 시작
+            docker-compose -f docker-compose.dev.yml up -d
 
+            # 사용하지 않는 이미지 정리
             docker image prune -f
             echo "=== 업데이트 완료! ==="
