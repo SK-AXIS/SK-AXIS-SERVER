@@ -127,18 +127,26 @@ public class IntervieweeService {
         if (requestDto.getScore() != null) {
             interviewee.setScore(requestDto.getScore());
         }
-        // 면접 일정 수정 로직 추가
-        if (requestDto.getInterviewId() != null && 
-            requestDto.getStartAt() != null && 
-            requestDto.getEndAt() != null) {
-
+        // 면접 일정 수정 로직 - intervieweeId로 interviewId 조회
+        if (requestDto.getStartAt() != null && requestDto.getEndAt() != null) {
+            // intervieweeId로 InterviewInterviewee 조회하여 interviewId 획득
+            List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+            
+            if (interviewInterviewees.isEmpty()) {
+                throw new RuntimeException("해당 면접 대상자에 대한 면접 일정이 존재하지 않습니다.");
+            }
+            
+            // 여러 면접이 있을 수 있으므로, 가장 최근 면접이나 특정 조건으로 선택
+            // 여기서는 첫 번째 면접을 사용 (비즈니스 로직에 따라 조정 필요)
+            Long interviewId = interviewInterviewees.get(0).getInterview().getInterviewId();
+            
             // InterviewService의 updateIntervieweeSchedule 메소드 호출
             UpdateIntervieweeScheduleRequestDto scheduleDto = new UpdateIntervieweeScheduleRequestDto();
             scheduleDto.setStartAt(requestDto.getStartAt());
             scheduleDto.setEndAt(requestDto.getEndAt());
             
             interviewService.updateIntervieweeSchedule(
-                requestDto.getInterviewId(), 
+                interviewId,
                 intervieweeId, 
                 scheduleDto
             );
