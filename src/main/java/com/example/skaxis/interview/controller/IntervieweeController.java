@@ -62,8 +62,8 @@ public class IntervieweeController {
             @Parameter(description = "면접 대상자 ID", required = true) @PathVariable Long intervieweeId,
             @RequestBody UpdateIntervieweeRequestDto requestDto) {
         try {
-            // 면접 일정 수정 시 필수 필드 검증
-            if (requestDto.getInterviewId() != null) {
+            // 면접 일정 수정 시 필수 필드 검증 (interviewId 제거)
+            if (requestDto.getStartAt() != null || requestDto.getEndAt() != null) {
                 if (requestDto.getStartAt() == null || requestDto.getEndAt() == null) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("message", "면접 일정 수정 시 시작 시간과 종료 시간이 모두 필요합니다."));

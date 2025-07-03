@@ -1,5 +1,6 @@
 package com.example.skaxis.auth.controller;
 
+import com.example.skaxis.auth.dto.UserLoginRequest;
 import com.example.skaxis.user.Role;
 import com.example.skaxis.auth.constants.AuthConstants;
 import com.example.skaxis.auth.dto.UserSignupRequest;
@@ -7,6 +8,10 @@ import com.example.skaxis.auth.jwt.JWTUtil;
 import com.example.skaxis.auth.jwt.TokenStatus;
 import com.example.skaxis.user.model.User;
 import com.example.skaxis.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -91,5 +96,17 @@ public class AuthController {
         response.addCookie(jwtUtil.createCookie(AuthConstants.REFRESH_PREFIX, refreshToken));
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Reissue successful");
+    }
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "사용자 로그인을 처리합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "로그인 성공"),
+        @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<?> login(
+            @RequestBody @Schema(description = "로그인 요청 정보") UserLoginRequest loginRequest) {
+        // 실제로는 LoginFilter에서 처리되므로 이 메소드는 실행되지 않음
+        // Swagger 문서화 목적으로만 존재
+        throw new IllegalStateException("This method shouldn't be called. It's implemented by Spring Security filters.");
     }
 }
