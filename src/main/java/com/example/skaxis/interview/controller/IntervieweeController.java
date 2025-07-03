@@ -1,9 +1,11 @@
 package com.example.skaxis.interview.controller;
 
+import com.example.skaxis.interview.dto.CreateIntervieweeRequestDto;
 import com.example.skaxis.interview.dto.InterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.SimpleInterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
 import com.example.skaxis.interview.dto.interviewee.UpdateIntervieweeRequestDto;
+import com.example.skaxis.interview.model.Interviewee;
 import com.example.skaxis.interview.service.IntervieweeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,6 +76,37 @@ public class IntervieweeController {
             log.error("Error updating interviewee: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Internal Server Error"));
+        }
+    }
+
+    @PostMapping("/interviewee")
+    @Operation(summary = "면접 대상자 생성", description = "새로운 면접 대상자를 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<?> createInterviewee(
+            @Valid @RequestBody CreateIntervieweeRequestDto requestDto) {
+        try {
+            Interviewee createdInterviewee = intervieweeService.createInterviewee(requestDto);
+            
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of(
+                        "message", "면접 대상자가 성공적으로 생성되었습니다.",
+                        "intervieweeId", createdInterviewee.getIntervieweeId(),
+                        "name", createdInterviewee.getName()
+                    ));
+                    
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request for creating interviewee: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+                    
+        } catch (Exception e) {
+            log.error("Error creating interviewee: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "면접 대상자 생성 중 오류가 발생했습니다."));
         }
     }
 

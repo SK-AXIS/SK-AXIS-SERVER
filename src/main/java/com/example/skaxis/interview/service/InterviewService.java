@@ -308,4 +308,10 @@ public class InterviewService {
         }
     }
 
+    public Interview saveInterview(Interview interview) {
+        if (interview.getCreatedAt() == null) {
+            interview.setCreatedAt(LocalDateTime.now());
+        }
+        return interviewRepository.save(interview);
+    }
 }

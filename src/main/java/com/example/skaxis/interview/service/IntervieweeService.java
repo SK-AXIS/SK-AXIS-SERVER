@@ -1,5 +1,6 @@
 package com.example.skaxis.interview.service;
 
+import com.example.skaxis.interview.dto.CreateIntervieweeRequestDto;
 import com.example.skaxis.interview.dto.InterviewScheduleItemDto;
 import com.example.skaxis.interview.dto.InterviewScheduleResponseDto;
 import com.example.skaxis.interview.dto.SimpleInterviewScheduleResponseDto;
@@ -56,14 +57,57 @@ public class IntervieweeService {
         return intervieweeRepository.save(interviewee);
     }
 
-    public Interviewee createInterviewee(String name, String applicantCode) {
-        // applicantCode 필드 추가
-        Interviewee interviewee = Interviewee.builder()
-                .name(name)
-//                .applicantCode(applicantCode)
+    @Transactional
+    public Interviewee createInterviewee(CreateIntervieweeRequestDto requestDto) {
+        // 입력 검증
+        validateCreateIntervieweeRequest(requestDto);
+        
+        // 1. Interview 생성 및 저장
+        Interview interview = Interview.builder()
+                .roomNo(requestDto.getRoomId())
+                .round(1)
+                .scheduledAt(requestDto.getStartAt())
+                .scheduledEndAt(requestDto.getEndAt())
+                .interviewers(requestDto.getInterviewers())
+                .status(Interview.InterviewStatus.SCHEDULED)
                 .createdAt(LocalDateTime.now())
                 .build();
-        return intervieweeRepository.save(interviewee);
+        interview = interviewService.saveInterview(interview);
+        
+        // 2. Interviewee 생성 및 저장
+        Interviewee interviewee = Interviewee.builder()
+                .name(requestDto.getName())
+                .score(0)
+                .createdAt(LocalDateTime.now())
+                .build();
+        interviewee = intervieweeRepository.save(interviewee);
+        
+        // 3. 관계 설정 및 저장 (한 번만)
+        InterviewInterviewee interviewInterviewee = InterviewInterviewee.builder()
+                .interview(interview)
+                .interviewee(interviewee)
+                .build();
+        interviewIntervieweeRepository.save(interviewInterviewee);
+        
+        log.info("Created new interviewee: {} with interview ID: {}", 
+                 interviewee.getName(), interview.getInterviewId());
+        
+        return interviewee;
+    }
+
+    private void validateCreateIntervieweeRequest(CreateIntervieweeRequestDto requestDto) {
+        if (requestDto.getName() == null || requestDto.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("면접자 이름은 필수입니다.");
+        }
+        if (requestDto.getStartAt() == null) {
+            throw new IllegalArgumentException("면접 시작 시간은 필수입니다.");
+        }
+        if (requestDto.getEndAt() == null) {
+            throw new IllegalArgumentException("면접 종료 시간은 필수입니다.");
+        }
+        if (requestDto.getStartAt().isAfter(requestDto.getEndAt())) {
+            throw new IllegalArgumentException("시작 시간은 종료 시간보다 이전이어야 합니다.");
+        }
     }
 
     public void deleteInterviewee(Long id) {
