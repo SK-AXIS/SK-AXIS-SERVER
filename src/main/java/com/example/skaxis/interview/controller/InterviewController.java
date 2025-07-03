@@ -3,6 +3,10 @@ package com.example.skaxis.interview.controller;
 import com.example.skaxis.interview.dto.*;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
 import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
+import com.example.skaxis.interview.model.Interview;
+import com.example.skaxis.interview.model.InterviewInterviewee;
+import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;
+import com.example.skaxis.interview.repository.InterviewRepository;
 import com.example.skaxis.question.dto.QuestionDto;
 import com.example.skaxis.question.dto.StartInterviewRequestDto;
 import com.example.skaxis.question.dto.StartInterviewResponseDto;
@@ -36,6 +40,8 @@ public class InterviewController {
     private final InterviewService interviewService;
     private final IntervieweeService intervieweeService;
     private final InternalQuestionService internalQuestionService; // 추가
+    private final InterviewIntervieweeRepository interviewIntervieweeRepository;
+    private final InterviewRepository interviewRepository;
 
     // 전체 면접 및 연관 데이터 삭제 (관리자 권한 필요)
     @DeleteMapping("")
@@ -195,33 +201,33 @@ public class InterviewController {
         }
     }
 
-    @PutMapping("/{interviewId}/interviewees/{intervieweeId}")
-    public ResponseEntity<?> updateIntervieweeSchedule(
-            @PathVariable("interviewId") Long interviewId,
-            @PathVariable("intervieweeId") Long intervieweeId,
-            @RequestBody UpdateIntervieweeScheduleRequestDto requestDto) {
-        try {
-            if (interviewId == null || interviewId <= 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Invalid interview ID"));
-            }
-            if (intervieweeId == null || intervieweeId <= 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Invalid interviewee ID"));
-            }
-            if (requestDto == null || requestDto.getStartAt() == null || requestDto.getEndAt() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Invalid request data"));
-            }
+    // @PutMapping("/{interviewId}/interviewees/{intervieweeId}")
+    // public ResponseEntity<?> updateIntervieweeSchedule(
+    //         @PathVariable("interviewId") Long interviewId,
+    //         @PathVariable("intervieweeId") Long intervieweeId,
+    //         @RequestBody UpdateIntervieweeScheduleRequestDto requestDto) {
+    //     try {
+    //         if (interviewId == null || interviewId <= 0) {
+    //             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    //                 .body(Map.of("message", "Invalid interview ID"));
+    //         }
+    //         if (intervieweeId == null || intervieweeId <= 0) {
+    //             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    //                 .body(Map.of("message", "Invalid interviewee ID"));
+    //         }
+    //         if (requestDto == null || requestDto.getStartAt() == null || requestDto.getEndAt() == null) {
+    //             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    //                     .body(Map.of("message", "Invalid request data"));
+    //         }
 
-            interviewService.updateIntervieweeSchedule(interviewId, intervieweeId, requestDto);
-            return ResponseEntity.ok().body(Map.of("message", "Interviewee schedule updated successfully"));
-        } catch (Exception e) {
-            log.error("Error updating interviewee schedule: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Internal Server Error"));
-        }
-    }
+    //         interviewService.updateIntervieweeSchedule(interviewId, intervieweeId, requestDto);
+    //         return ResponseEntity.ok().body(Map.of("message", "Interviewee schedule updated successfully"));
+    //     } catch (Exception e) {
+    //         log.error("Error updating interviewee schedule: {}", e.getMessage());
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    //                 .body(Map.of("message", "Internal Server Error"));
+    //     }
+    // }
 
     @PostMapping("/start")
     @Operation(summary = "면접 시작", description = "각 지원자의 질문 목록을 로드해 반환하고, 면접 상태를 초기화합니다.")
@@ -238,6 +244,21 @@ public class InterviewController {
             List<Long> intervieweeIds = request.getIntervieweeIds().stream()
                     .map(Integer::longValue)
                     .toList();
+
+            // 면접 상태를 COMPLETED로 변경
+            for (Long intervieweeId : intervieweeIds) {
+                // InterviewInterviewee를 통해 해당 면접 찾기
+                List<InterviewInterviewee> interviewInterviewees =
+                    interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+                
+                for (InterviewInterviewee ii : interviewInterviewees) {
+                    Interview interview = ii.getInterview();
+                    if (interview != null) {
+                        interview.setStatus(Interview.InterviewStatus.COMPLETED);
+                        interviewRepository.save(interview);
+                    }
+                }
+            }
 
             // InternalQuestionService를 사용하여 질문 조회
             Map<String, List<Question>> questionsPerInterviewee =
@@ -285,10 +306,6 @@ public class InterviewController {
         }
         return dbType; // 기본값
     }
-
-    // 다음 메소드를 제거합니다:
-    // @PutMapping("/{interviewId}/interviewees/{intervieweeId}")
-    // public ResponseEntity<?> updateIntervieweeSchedule(...) { ... }
 
     @DeleteMapping("/{interviewId}/interviewees/{intervieweeId}")
     public ResponseEntity<?> deleteInterviewInterviewee(
