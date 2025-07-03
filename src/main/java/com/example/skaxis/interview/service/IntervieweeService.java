@@ -14,6 +14,7 @@ import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;
 import com.example.skaxis.interview.dto.common.PersonDto;
 import com.example.skaxis.interview.dto.common.RoomDto;
 import com.example.skaxis.interview.dto.common.TimeSlotDto;
+import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
 import com.example.skaxis.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,15 +76,30 @@ public class IntervieweeService {
     @Transactional
     public void updateInterviewee(Long intervieweeId, UpdateIntervieweeRequestDto requestDto) {
         Interviewee interviewee = findById(intervieweeId);
-
+        // 기존 이름, 점수 수정 로직
         if (requestDto.getName() != null && !requestDto.getName().isEmpty()) {
             interviewee.setName(requestDto.getName());
         }
-
         if (requestDto.getScore() != null) {
             interviewee.setScore(requestDto.getScore());
         }
+        // 면접 일정 수정 로직 추가
+        if (requestDto.getInterviewId() != null && 
+            requestDto.getStartAt() != null && 
+            requestDto.getEndAt() != null) {
 
+            // InterviewService의 updateIntervieweeSchedule 메소드 호출
+            UpdateIntervieweeScheduleRequestDto scheduleDto = new UpdateIntervieweeScheduleRequestDto();
+            scheduleDto.setStartAt(requestDto.getStartAt());
+            scheduleDto.setEndAt(requestDto.getEndAt());
+            
+            interviewService.updateIntervieweeSchedule(
+                requestDto.getInterviewId(), 
+                intervieweeId, 
+                scheduleDto
+            );
+        }
+    
         intervieweeRepository.save(interviewee);
     }
 

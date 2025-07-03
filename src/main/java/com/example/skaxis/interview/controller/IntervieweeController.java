@@ -14,12 +14,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/interviewees")
 @RequiredArgsConstructor
@@ -44,16 +49,31 @@ public class IntervieweeController {
     }
 
     @PutMapping("/{intervieweeId}")
-    @Operation(summary = "면접 대상자 정보 수정", description = "특정 면접 대상자의 이름 또는 점수를 수정합니다.")
+    @Operation(summary = "면접 대상자 정보 및 일정 수정", description = "특정 면접 대상자의 이름, 점수 또는 면접 일정을 수정합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "면접 대상자를 찾을 수 없음")
     })
-    public ResponseEntity<Void> updateInterviewee(
+    public ResponseEntity<?> updateInterviewee(
             @Parameter(description = "면접 대상자 ID", required = true) @PathVariable Long intervieweeId,
             @RequestBody UpdateIntervieweeRequestDto requestDto) {
-        intervieweeService.updateInterviewee(intervieweeId, requestDto);
-        return ResponseEntity.ok().build();
+        try {
+            // 면접 일정 수정 시 필수 필드 검증
+            if (requestDto.getInterviewId() != null) {
+                if (requestDto.getStartAt() == null || requestDto.getEndAt() == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "면접 일정 수정 시 시작 시간과 종료 시간이 모두 필요합니다."));
+                }
+            }
+            
+            intervieweeService.updateInterviewee(intervieweeId, requestDto);
+            return ResponseEntity.ok().body(Map.of("message", "면접 대상자 정보가 성공적으로 수정되었습니다."));
+        } catch (Exception e) {
+            log.error("Error updating interviewee: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Internal Server Error"));
+        }
     }
 
     @GetMapping("/interviews")
