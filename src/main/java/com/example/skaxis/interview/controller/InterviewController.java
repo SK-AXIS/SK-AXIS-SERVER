@@ -286,6 +286,10 @@ public class InterviewController {
         return dbType; // 기본값
     }
 
+    // 다음 메소드를 제거합니다:
+    // @PutMapping("/{interviewId}/interviewees/{intervieweeId}")
+    // public ResponseEntity<?> updateIntervieweeSchedule(...) { ... }
+
     @DeleteMapping("/{interviewId}/interviewees/{intervieweeId}")
     public ResponseEntity<?> deleteInterviewInterviewee(
             @PathVariable("interviewId") Long interviewId,
