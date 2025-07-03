@@ -229,6 +229,7 @@ public class InterviewController {
     //     }
     // }
 
+    @Transactional
     @PostMapping("/start")
     @Operation(summary = "면접 시작", description = "각 지원자의 질문 목록을 로드해 반환하고, 면접 상태를 초기화합니다.")
     public ResponseEntity<?> startInterview(@RequestBody StartInterviewRequestDto request) {
