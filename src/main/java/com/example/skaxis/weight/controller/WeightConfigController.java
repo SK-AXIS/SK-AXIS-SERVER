@@ -115,7 +115,7 @@ public class WeightConfigController {
     /*
      * 가중치 변경
      */
-    @PatchMapping("/{configId}")
+    @PutMapping("/{configId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "가중치 설정 변경", description = "지정된 가중치 설정을 변경합니다 (관리자 권한 필요)")
     public ResponseEntity<?> updateWeightConfig(@PathVariable Long configId, @RequestBody WeightConfigCreateRequestDto requestDto) {
