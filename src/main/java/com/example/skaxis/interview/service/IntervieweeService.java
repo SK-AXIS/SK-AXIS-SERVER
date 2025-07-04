@@ -119,47 +119,54 @@ public class IntervieweeService {
 
     @Transactional
     public void updateInterviewee(Long intervieweeId, UpdateIntervieweeRequestDto requestDto) {
-        Interviewee interviewee = findById(intervieweeId);
-        
-        // 기존 이름, 점수 수정 로직
-        boolean isUpdated = false;
-        if (requestDto.getName() != null && !requestDto.getName().isEmpty()) {
-            interviewee.setName(requestDto.getName());
-            isUpdated = true;
-        }
-        if (requestDto.getScore() != null) {
-            interviewee.setScore(requestDto.getScore());
-            isUpdated = true;
-        }
-        
-        // Interviewee 정보가 변경된 경우 먼저 저장
-        if (isUpdated) {
-            intervieweeRepository.save(interviewee);
-        }
-        
-        // 면접 일정 수정 로직 - intervieweeId로 interviewId 조회
-        if (requestDto.getStartAt() != null && requestDto.getEndAt() != null) {
-            // intervieweeId로 InterviewInterviewee 조회하여 interviewId 획득
-            List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+        try {
+            Interviewee interviewee = findById(intervieweeId);
             
-            if (interviewInterviewees.isEmpty()) {
-                throw new RuntimeException("해당 면접 대상자에 대한 면접 일정이 존재하지 않습니다.");
+            // 기존 이름, 점수 수정 로직
+            boolean isUpdated = false;
+            if (requestDto.getName() != null && !requestDto.getName().isEmpty()) {
+                interviewee.setName(requestDto.getName());
+                isUpdated = true;
+            }
+            if (requestDto.getScore() != null) {
+                interviewee.setScore(requestDto.getScore());
+                isUpdated = true;
             }
             
-            // 여러 면접이 있을 수 있으므로, 가장 최근 면접이나 특정 조건으로 선택
-            // 여기서는 첫 번째 면접을 사용 (비즈니스 로직에 따라 조정 필요)
-            Long interviewId = interviewInterviewees.get(0).getInterview().getInterviewId();
+            // Interviewee 정보가 변경된 경우 즉시 저장
+            if (isUpdated) {
+                intervieweeRepository.save(interviewee);
+                log.info("Updated interviewee: {} with name: {}, score: {}", 
+                        intervieweeId, requestDto.getName(), requestDto.getScore());
+            }
             
-            // InterviewService의 updateIntervieweeSchedule 메소드 호출
-            UpdateIntervieweeScheduleRequestDto scheduleDto = new UpdateIntervieweeScheduleRequestDto();
-            scheduleDto.setStartAt(requestDto.getStartAt());
-            scheduleDto.setEndAt(requestDto.getEndAt());
-            
-            interviewService.updateIntervieweeSchedule(
-                interviewId,
-                intervieweeId, 
-                scheduleDto
-            );
+            // 면접 일정 수정 로직
+            if (requestDto.getStartAt() != null && requestDto.getEndAt() != null) {
+                List<InterviewInterviewee> interviewInterviewees = 
+                    interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+                
+                if (interviewInterviewees.isEmpty()) {
+                    throw new RuntimeException("해당 면접 대상자에 대한 면접 일정이 존재하지 않습니다.");
+                }
+                
+                Long interviewId = interviewInterviewees.get(0).getInterview().getInterviewId();
+                
+                UpdateIntervieweeScheduleRequestDto scheduleDto = new UpdateIntervieweeScheduleRequestDto();
+                scheduleDto.setStartAt(requestDto.getStartAt());
+                scheduleDto.setEndAt(requestDto.getEndAt());
+                
+                try {
+                    interviewService.updateIntervieweeSchedule(interviewId, intervieweeId, scheduleDto);
+                    log.info("Updated interview schedule for interviewee: {} with interview: {}", 
+                            intervieweeId, interviewId);
+                } catch (Exception e) {
+                    log.error("Failed to update interview schedule for interviewee: {}", intervieweeId, e);
+                    throw new RuntimeException("면접 일정 업데이트에 실패했습니다: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to update interviewee: {}", intervieweeId, e);
+            throw e;
         }
     }
 
