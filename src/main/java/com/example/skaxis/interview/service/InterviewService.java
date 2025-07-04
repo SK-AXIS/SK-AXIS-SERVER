@@ -4,7 +4,7 @@ import com.example.skaxis.interview.dto.CreateInterviewRequestDto;
 import com.example.skaxis.interview.dto.GetInterviewByIdResponseDto;
 import com.example.skaxis.interview.dto.GetInterviewsResponseDto;
 import com.example.skaxis.interview.dto.UpdateInterviewRequestDto;
-import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
+import com.example.skaxis.interview.dto.interviewee.UpdateIntervieweeRequestDto;
 import com.example.skaxis.interview.model.Interview;
 import com.example.skaxis.interview.model.InterviewInterviewee;
 import com.example.skaxis.interview.model.Interviewee;
@@ -36,7 +36,7 @@ public class InterviewService {
     private final IntervieweeRepository intervieweeRepository;
     private final UserRepository userRepository;
     @Transactional
-    public void updateIntervieweeSchedule(Long interviewId, Long intervieweeId, UpdateIntervieweeScheduleRequestDto requestDto) {
+    public void updateIntervieweeSchedule(Long interviewId, Long intervieweeId, UpdateIntervieweeRequestDto requestDto) {
         InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository.findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
                 .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
     

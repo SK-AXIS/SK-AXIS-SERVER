@@ -2,7 +2,6 @@ package com.example.skaxis.interview.controller;
 
 import com.example.skaxis.interview.dto.*;
 import com.example.skaxis.interview.dto.interviewee.IntervieweeListResponseDto;
-import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
 import com.example.skaxis.interview.model.Interview;
 import com.example.skaxis.interview.model.InterviewInterviewee;
 import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;

@@ -1,10 +1,12 @@
 package com.example.skaxis.interview.dto.interviewee;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Data
 @Getter
 @NoArgsConstructor
 public class UpdateIntervieweeRequestDto {
