@@ -20,7 +20,8 @@ public class IntervieweeResponseDto {
     private Long interviewId;
     private Long intervieweeId;
     private String name;
-    private LocalDateTime scheduledAt;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
     private Interview.InterviewStatus status;
     private Integer score;
     private String interviewers;
@@ -29,21 +30,20 @@ public class IntervieweeResponseDto {
     private LocalDateTime createdAt;
 
     public static IntervieweeResponseDto from(InterviewInterviewee interviewInterviewee) {
-        Interview interview = interviewInterviewee.getInterview();
         Interviewee interviewee = interviewInterviewee.getInterviewee();
-
+        Interview interview = interviewInterviewee.getInterview();
+    
         return IntervieweeResponseDto.builder()
-                .interviewId(interview.getInterviewId())
-                .intervieweeId(interviewee.getIntervieweeId())
-                .name(interviewee.getName())
-                .scheduledAt(interview.getScheduledAt())
-                .status(interview.getStatus())
-                .score(interviewInterviewee.getScore())
-                .interviewers(interview.getInterviewers())
-                .roomNo(interview.getRoomNo())
-                .comment(interviewInterviewee.getComment())
-                .createdAt(interviewInterviewee.getCreatedAt())
-                .build();
+            .interviewId(interview.getInterviewId())
+            .intervieweeId(interviewee.getIntervieweeId())
+            .name(interviewee.getName())
+            .score(interviewee.getScore()) // 수정: interviewInterviewee.getScore() → interviewee.getScore()
+            .roomNo(interview.getRoomNo())
+            .startAt(interview.getScheduledAt())
+            .endAt(interview.getScheduledEndAt())
+            .status(interview.getStatus())
+            .createdAt(interviewee.getCreatedAt())
+            .build();
     }
 
     public static List<IntervieweeResponseDto> fromList(List<InterviewInterviewee> interviewInterviewees) {
