@@ -166,8 +166,11 @@ public class InterviewService {
         if (updateInterviewRequestDto.getRound() != null) {
             interview.setRound(updateInterviewRequestDto.getRound());
         }
-        if (updateInterviewRequestDto.getScheduledAt() != null) {
-            interview.setScheduledAt(java.time.LocalDateTime.parse(updateInterviewRequestDto.getScheduledAt()));
+        if (updateInterviewRequestDto.getStartAt() != null) {
+            interview.setScheduledAt(updateInterviewRequestDto.getStartAt());
+        }
+        if (updateInterviewRequestDto.getEndAt() != null) {
+            interview.setScheduledEndAt(updateInterviewRequestDto.getEndAt());
         }
         if (updateInterviewRequestDto.getOrderNo() != null) {
             interview.setOrderNo(updateInterviewRequestDto.getOrderNo());
