@@ -3,6 +3,8 @@ package com.example.skaxis.interview.dto.interviewee;
 import com.example.skaxis.interview.model.Interview;
 import com.example.skaxis.interview.model.InterviewInterviewee;
 import com.example.skaxis.interview.model.Interviewee;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,13 +22,16 @@ public class IntervieweeResponseDto {
     private Long interviewId;
     private Long intervieweeId;
     private String name;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startAt;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endAt;
     private Interview.InterviewStatus status;
     private Integer score;
     private String interviewers;
     private String roomNo;
     private String comment;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     public static IntervieweeResponseDto from(InterviewInterviewee interviewInterviewee) {
