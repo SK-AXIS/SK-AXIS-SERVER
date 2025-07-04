@@ -15,7 +15,6 @@ import com.example.skaxis.interview.repository.InterviewIntervieweeRepository;
 import com.example.skaxis.interview.dto.common.PersonDto;
 import com.example.skaxis.interview.dto.common.RoomDto;
 import com.example.skaxis.interview.dto.common.TimeSlotDto;
-import com.example.skaxis.interview.dto.interview.UpdateIntervieweeScheduleRequestDto;
 import com.example.skaxis.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -150,8 +149,8 @@ public class IntervieweeService {
                 }
                 
                 Long interviewId = interviewInterviewees.get(0).getInterview().getInterviewId();
-                
-                UpdateIntervieweeScheduleRequestDto scheduleDto = new UpdateIntervieweeScheduleRequestDto();
+
+                UpdateIntervieweeRequestDto scheduleDto = new UpdateIntervieweeRequestDto();
                 scheduleDto.setStartAt(requestDto.getStartAt());
                 scheduleDto.setEndAt(requestDto.getEndAt());
                 
