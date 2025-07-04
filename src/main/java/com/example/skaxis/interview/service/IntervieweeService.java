@@ -120,13 +120,23 @@ public class IntervieweeService {
     @Transactional
     public void updateInterviewee(Long intervieweeId, UpdateIntervieweeRequestDto requestDto) {
         Interviewee interviewee = findById(intervieweeId);
+        
         // 기존 이름, 점수 수정 로직
+        boolean isUpdated = false;
         if (requestDto.getName() != null && !requestDto.getName().isEmpty()) {
             interviewee.setName(requestDto.getName());
+            isUpdated = true;
         }
         if (requestDto.getScore() != null) {
             interviewee.setScore(requestDto.getScore());
+            isUpdated = true;
         }
+        
+        // Interviewee 정보가 변경된 경우 먼저 저장
+        if (isUpdated) {
+            intervieweeRepository.save(interviewee);
+        }
+        
         // 면접 일정 수정 로직 - intervieweeId로 interviewId 조회
         if (requestDto.getStartAt() != null && requestDto.getEndAt() != null) {
             // intervieweeId로 InterviewInterviewee 조회하여 interviewId 획득
@@ -151,8 +161,6 @@ public class IntervieweeService {
                 scheduleDto
             );
         }
-    
-        intervieweeRepository.save(interviewee);
     }
 
     // 면접 일정 관련 기능들 (InterviewService와 협력)
