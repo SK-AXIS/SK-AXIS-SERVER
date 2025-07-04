@@ -42,6 +42,7 @@ public class IntervieweeResponseDto {
             .startAt(interview.getScheduledAt())
             .endAt(interview.getScheduledEndAt())
             .status(interview.getStatus())
+            .interviewers(interview.getInterviewers())
             .createdAt(interviewee.getCreatedAt())
             .build();
     }
