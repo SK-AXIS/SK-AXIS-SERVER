@@ -111,4 +111,33 @@ public class WeightConfigController {
                     .body(Map.of("message", "서버 오류가 발생했습니다"));
         }
     }
+
+    /*
+     * 가중치 변경
+     */
+    @PatchMapping("/{configId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "가중치 설정 변경", description = "지정된 가중치 설정을 변경합니다 (관리자 권한 필요)")
+    public ResponseEntity<?> updateWeightConfig(@PathVariable Long configId, @RequestBody WeightConfigCreateRequestDto requestDto) {
+        try {
+            if (!requestDto.isValidWeightSum()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "가중치의 합은 100이어야 합니다"));
+            }
+            WeightConfigResponseDto updatedConfig = weightConfigService.updateWeightConfig(configId, requestDto);
+            return ResponseEntity.ok(updatedConfig);
+        } catch (IllegalArgumentException e) {
+            log.error("가중치 설정 변경 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("가중치 설정 변경 중 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "서버 오류가 발생했습니다"));
+        }
+    }
+
+
+
+
 }

@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class WeightConfigService {
-    
+
     private final WeightConfigRepository weightConfigRepository;
-    
+
     /**
      * 현재 활성화된 가중치 설정 조회
      */
@@ -26,10 +26,10 @@ public class WeightConfigService {
     public WeightConfigResponseDto getActiveWeightConfig() {
         WeightConfig activeConfig = weightConfigRepository.findByIsActiveTrue()
                 .orElseThrow(() -> new RuntimeException("활성화된 가중치 설정이 없습니다"));
-        
+
         return WeightConfigResponseDto.from(activeConfig);
     }
-    
+
     /**
      * 모든 가중치 설정 조회 (최신순)
      */
@@ -40,7 +40,7 @@ public class WeightConfigService {
                 .map(WeightConfigResponseDto::from)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * 새로운 가중치 설정 생성
      */
@@ -50,14 +50,14 @@ public class WeightConfigService {
         if (!requestDto.isValidWeightSum()) {
             throw new IllegalArgumentException("가중치의 합은 100이어야 합니다");
         }
-        
+
         // 기존 활성화된 설정 비활성화
         weightConfigRepository.findByIsActiveTrue()
                 .ifPresent(existingConfig -> {
                     existingConfig.setIsActive(false);
                     weightConfigRepository.save(existingConfig);
                 });
-        
+
         // 새로운 설정 생성 및 활성화
         WeightConfig newConfig = WeightConfig.builder()
                 .verbalWeight(requestDto.getVerbalWeight())
@@ -65,13 +65,13 @@ public class WeightConfigService {
                 .nonverbalWeight(requestDto.getNonverbalWeight())
                 .isActive(true)
                 .build();
-        
+
         WeightConfig savedConfig = weightConfigRepository.save(newConfig);
         log.info("새로운 가중치 설정이 생성되었습니다. ID: {}", savedConfig.getWeightConfigId());
-        
+
         return WeightConfigResponseDto.from(savedConfig);
     }
-    
+
     /**
      * 기본 가중치 설정 초기화 (시스템 초기 설정용)
      */
@@ -81,9 +81,29 @@ public class WeightConfigService {
         if (weightConfigRepository.existsByIsActiveTrue()) {
             return getActiveWeightConfig();
         }
-        
+
         // 기본 가중치 설정 (예: 언어적 40%, 직무·도메인 40%, 비언어적 20%)
         WeightConfigCreateRequestDto defaultRequest = new WeightConfigCreateRequestDto(40, 40, 20);
         return createWeightConfig(defaultRequest);
+    }
+
+    public WeightConfigResponseDto updateWeightConfig(Long configId, WeightConfigCreateRequestDto requestDto) {
+        // TODO Auto-generated method stub
+
+        // 가중치 설정 변경 로직 구현
+        WeightConfig existingConfig = weightConfigRepository.findById(configId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 가중치 설정이 없습니다"));
+
+        // 가중치 합계 검증
+        if (!requestDto.isValidWeightSum()) {
+            throw new IllegalArgumentException("가중치의 합은 100이어야 합니다");
+        }
+        existingConfig.setVerbalWeight(requestDto.getVerbalWeight());
+        existingConfig.setDomainWeight(requestDto.getDomainWeight());
+        existingConfig.setNonverbalWeight(requestDto.getNonverbalWeight());
+        existingConfig.setIsActive(true); // 활성화 상태 유지
+        WeightConfig updatedConfig = weightConfigRepository.save(existingConfig);
+        log.info("가중치 설정이 변경되었습니다. ID: {}", updatedConfig.getWeightConfigId());
+        return WeightConfigResponseDto.from(updatedConfig);
     }
 }
