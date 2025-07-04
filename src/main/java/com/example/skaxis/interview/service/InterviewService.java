@@ -40,29 +40,35 @@ public class InterviewService {
         InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository.findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
                 .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
     
-        Interview originalInterview = interviewInterviewee.getInterview();
+        Interview interview = interviewInterviewee.getInterview();
     
-        // 새로운 Interview 객체 생성
-        Interview newInterview = new Interview();
-        newInterview.setRoomNo(originalInterview.getRoomNo());
-        newInterview.setRound(originalInterview.getRound());
-        newInterview.setOrderNo(originalInterview.getOrderNo());
-        newInterview.setStatus(originalInterview.getStatus());
-        newInterview.setInterviewers(originalInterview.getInterviewers());
-        newInterview.setScheduledAt(requestDto.getStartAt()); // startAt을 면접 시작 시간으로 설정
-        newInterview.setScheduledEndAt(requestDto.getEndAt()); // endAt을 면접 종료 시간으로 설정
-    
-        Interview savedNewInterview = interviewRepository.save(newInterview);
-    
-        // 기존 연결 정보 업데이트
-        interviewInterviewee.setInterview(savedNewInterview);
-        interviewIntervieweeRepository.save(interviewInterviewee);
-    
-        // 기존 면접에 더 이상 면접자가 없는 경우 삭제
-        long remainingInterviewees = interviewIntervieweeRepository.countByInterviewId(originalInterview.getInterviewId());
-        if (remainingInterviewees == 0) {
-            interviewRepository.delete(originalInterview);
+        // 기존 Interview 객체를 직접 업데이트
+        if (requestDto.getRoomName() != null) {
+            interview.setRoomNo(requestDto.getRoomName());
         }
+        
+        if (requestDto.getStatus() != null) {
+            try {
+                interview.setStatus(Interview.InterviewStatus.valueOf(requestDto.getStatus()));
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid status value: {}, keeping original status", requestDto.getStatus());
+            }
+        }
+        
+        if (requestDto.getInterviewers() != null) {
+            interview.setInterviewers(requestDto.getInterviewers());
+        }
+        
+        if (requestDto.getStartAt() != null) {
+            interview.setScheduledAt(requestDto.getStartAt());
+        }
+        
+        if (requestDto.getEndAt() != null) {
+            interview.setScheduledEndAt(requestDto.getEndAt());
+        }
+    
+        // 기존 Interview를 업데이트 (새로운 ID 생성 안됨)
+        interviewRepository.save(interview);
     }
 
     @Transactional(readOnly = true)

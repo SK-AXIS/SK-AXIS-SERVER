@@ -154,6 +154,17 @@ public class IntervieweeService {
                 scheduleDto.setStartAt(requestDto.getStartAt());
                 scheduleDto.setEndAt(requestDto.getEndAt());
                 
+                // 추가 필드들 설정
+                if (requestDto.getRoomName() != null) {
+                    scheduleDto.setRoomName(requestDto.getRoomName());
+                }
+                if (requestDto.getInterviewers() != null) {
+                    scheduleDto.setInterviewers(requestDto.getInterviewers());
+                }
+                if (requestDto.getStatus() != null) {
+                    scheduleDto.setStatus(requestDto.getStatus());
+                }
+                
                 try {
                     interviewService.updateIntervieweeSchedule(interviewId, intervieweeId, scheduleDto);
                     log.info("Updated interview schedule for interviewee: {} with interview: {}", 
