@@ -2,6 +2,7 @@ package com.example.skaxis.weight.service;
 
 import com.example.skaxis.weight.dto.WeightConfigCreateRequestDto;
 import com.example.skaxis.weight.dto.WeightConfigResponseDto;
+import com.example.skaxis.weight.dto.WeightConfigUpdateRequestDto;
 import com.example.skaxis.weight.model.WeightConfig;
 import com.example.skaxis.weight.repository.WeightConfigRepository;
 import lombok.RequiredArgsConstructor;
@@ -87,7 +88,7 @@ public class WeightConfigService {
         return createWeightConfig(defaultRequest);
     }
 
-    public WeightConfigResponseDto updateWeightConfig(Long configId, WeightConfigCreateRequestDto requestDto) {
+    public WeightConfigResponseDto updateWeightConfig(Long configId, WeightConfigUpdateRequestDto requestDto) {
         // TODO Auto-generated method stub
 
         // 가중치 설정 변경 로직 구현
@@ -95,9 +96,7 @@ public class WeightConfigService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 가중치 설정이 없습니다"));
 
         // 가중치 합계 검증
-        if (!requestDto.isValidWeightSum()) {
-            throw new IllegalArgumentException("가중치의 합은 100이어야 합니다");
-        }
+        
         existingConfig.setVerbalWeight(requestDto.getVerbalWeight());
         existingConfig.setDomainWeight(requestDto.getDomainWeight());
         existingConfig.setNonverbalWeight(requestDto.getNonverbalWeight());

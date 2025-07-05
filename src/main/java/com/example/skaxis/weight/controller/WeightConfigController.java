@@ -2,6 +2,7 @@ package com.example.skaxis.weight.controller;
 
 import com.example.skaxis.weight.dto.WeightConfigCreateRequestDto;
 import com.example.skaxis.weight.dto.WeightConfigResponseDto;
+import com.example.skaxis.weight.dto.WeightConfigUpdateRequestDto;
 import com.example.skaxis.weight.service.WeightConfigService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -118,7 +119,7 @@ public class WeightConfigController {
     @PutMapping("/{configId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "가중치 설정 변경", description = "지정된 가중치 설정을 변경합니다 (관리자 권한 필요)")
-    public ResponseEntity<?> updateWeightConfig(@PathVariable Long configId, @RequestBody WeightConfigCreateRequestDto requestDto) {
+    public ResponseEntity<?> updateWeightConfig(@PathVariable Long configId, @RequestBody WeightConfigUpdateRequestDto requestDto) {
         try {
             if (!requestDto.isValidWeightSum()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
