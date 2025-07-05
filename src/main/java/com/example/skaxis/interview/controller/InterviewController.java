@@ -488,12 +488,15 @@ public class InterviewController {
                 interviewResult = existingResult.get();
                 log.info("기존 InterviewResult 업데이트: interviewId={}, intervieweeId={}", interviewId, intervieweeId);
             } else {
-                interviewResult = new InterviewResult();
-                // 🔧 이 부분을 추가해야 함
-                interviewResult.setInterviewId(interviewId);
-                interviewResult.setIntervieweeId(intervieweeId);
-                interviewResult.setInterview(interviewInterviewee.getInterview());
-                interviewResult.setInterviewee(interviewInterviewee.getInterviewee());
+                // 새로운 InterviewResult 생성
+                InterviewResult newResult = new InterviewResult();
+                newResult.setInterviewee(interviewInterviewee.getInterviewee());
+                newResult.setInterview(interviewInterviewee.getInterview());
+                // 🔥 ID 필드 명시적 설정
+                newResult.setInterviewId(interviewId);
+                newResult.setIntervieweeId(intervieweeId);
+                
+                interviewResult = newResult;
                 log.info("새 InterviewResult 생성: interviewId={}, intervieweeId={}", interviewId, intervieweeId);
             }
 
