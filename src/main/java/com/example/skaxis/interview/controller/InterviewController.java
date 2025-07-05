@@ -28,7 +28,8 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.reactive.function.client.WebClient;
+import java.time.Duration;
 import java.time.LocalDate;
 
 @Slf4j
@@ -41,6 +42,7 @@ public class InterviewController {
     private final InternalQuestionService internalQuestionService; // 추가
     private final InterviewIntervieweeRepository interviewIntervieweeRepository;
     private final InterviewRepository interviewRepository;
+    private final WebClient webClient;
 
     // 전체 면접 및 연관 데이터 삭제 (관리자 권한 필요)
     @DeleteMapping("")
@@ -247,7 +249,6 @@ public class InterviewController {
 
             // 면접 상태를 COMPLETED로 변경
             for (Long intervieweeId : intervieweeIds) {
-                // InterviewInterviewee를 통해 해당 면접 찾기
                 List<InterviewInterviewee> interviewInterviewees =
                     interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
                 
@@ -275,6 +276,27 @@ public class InterviewController {
                         ))
                         .toList();
                 questionDtosPerInterviewee.put(entry.getKey(), questionDtos);
+            }
+    
+            // ✅ FastAPI 서버로 면접 상태 초기화 요청 추가
+            try {
+                Map<String, Object> fastApiRequest = Map.of(
+                    "interviewee_ids", request.getIntervieweeIds(),
+                    "questions_per_interviewee", questionDtosPerInterviewee
+                );
+                
+                webClient.post()
+                    .uri("http://fastapi:8000/api/v1/interview/start")
+                    .bodyValue(fastApiRequest)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofSeconds(10))
+                    .block();
+                    
+                log.info("FastAPI 면접 상태 초기화 완료: {}", intervieweeIds);
+            } catch (Exception fastApiError) {
+                log.error("FastAPI 호출 실패: {}", fastApiError.getMessage());
+                // FastAPI 호출 실패해도 Spring Boot 응답은 정상 반환
             }
 
             StartInterviewResponseDto response = new StartInterviewResponseDto(
