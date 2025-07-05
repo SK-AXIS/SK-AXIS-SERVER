@@ -242,10 +242,7 @@ public class InterviewController {
                         .body(Map.of("message", "지원자 ID 목록이 필요합니다."));
             }
 
-            // Integer List를 Long List로 변환
-            List<Long> intervieweeIds = request.getIntervieweeIds().stream()
-                    .map(Integer::longValue)
-                    .toList();
+            List<Long> intervieweeIds = request.getIntervieweeIds();
 
             // 면접 상태를 COMPLETED로 변경
             for (Long intervieweeId : intervieweeIds) {
@@ -278,11 +275,15 @@ public class InterviewController {
                 questionDtosPerInterviewee.put(entry.getKey(), questionDtos);
             }
     
-            // ✅ FastAPI 서버로 면접 상태 초기화 요청 추가
+            // ✅ FastAPI 서버로 면접 상태 초기화 요청 (수정된 구조)
             try {
+                // Convert Long to Integer for FastAPI compatibility
+                List<Integer> fastApiIntervieweeIds = intervieweeIds.stream()
+                        .map(Long::intValue)
+                        .toList();
+                        
                 Map<String, Object> fastApiRequest = Map.of(
-                    "interviewee_ids", request.getIntervieweeIds(),
-                    "questions_per_interviewee", questionDtosPerInterviewee
+                    "interviewee_ids", fastApiIntervieweeIds
                 );
                 
                 webClient.post()

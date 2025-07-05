@@ -9,5 +9,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StartInterviewRequestDto {
-    private List<Integer> intervieweeIds;
+    private List<Long> intervieweeIds;  // Changed from Integer to Long
 }
