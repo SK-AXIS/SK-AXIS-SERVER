@@ -16,6 +16,7 @@ public final class AuthConstants {
             "/api/v1/interviews/**",
             "/api/v1/interviewees/**",
             "/api/v1/internal/**",
+            "/api/v1/weight-config/**",
             // Swagger UI 경로 추가
             "/swagger-ui/**",
             "/swagger-ui.html",
