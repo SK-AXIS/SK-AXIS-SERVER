@@ -489,6 +489,9 @@ public class InterviewController {
                 log.info("기존 InterviewResult 업데이트: interviewId={}, intervieweeId={}", interviewId, intervieweeId);
             } else {
                 interviewResult = new InterviewResult();
+                // 🔧 이 부분을 추가해야 함
+                interviewResult.setInterviewId(interviewId);
+                interviewResult.setIntervieweeId(intervieweeId);
                 interviewResult.setInterview(interviewInterviewee.getInterview());
                 interviewResult.setInterviewee(interviewInterviewee.getInterviewee());
                 log.info("새 InterviewResult 생성: interviewId={}, intervieweeId={}", interviewId, intervieweeId);
