@@ -224,8 +224,8 @@ public class MediaService {
             Interviewee interviewee = getOrCreateInterviewee(intervieweeName);
 
             InterviewInterviewee interviewInterviewee = InterviewInterviewee.builder()
-                    .interviewId(interview.getInterviewId())
-                    .intervieweeId(interviewee.getIntervieweeId())
+                    .interview(interview)
+                    .interviewee(interviewee)
                     .createdAt(LocalDateTime.now())
                     .build();
 

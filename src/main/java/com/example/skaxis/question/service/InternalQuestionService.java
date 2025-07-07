@@ -47,7 +47,7 @@ public class InternalQuestionService {
                 continue;
             }
             
-            Long interviewId = interviewInterviewee.getInterviewId();
+            Long interviewId = interviewInterviewee.getInterviewee().getIntervieweeId();
             
             // 공통 질문 3개 조회
             List<Question> commonQuestions = questionRepository.findByInterviewIdAndType(interviewId, "공통질문");
@@ -86,7 +86,7 @@ public class InternalQuestionService {
             
             if (!interviewInterviewees.isEmpty()) {
                 // 2. 가장 최근 면접의 interviewId 가져오기
-                Long interviewId = interviewInterviewees.get(0).getInterviewId();
+                Long interviewId = interviewInterviewees.get(0).getInterview().getInterviewId();
                 
                 // 3. interviewId로 질문들 조회
                 List<Question> questions = questionRepository.findByInterviewId(interviewId);
