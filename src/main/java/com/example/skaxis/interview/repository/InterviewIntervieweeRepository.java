@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InterviewIntervieweeRepository extends JpaRepository<InterviewInterviewee, Long> {
-    List<InterviewInterviewee> findByInterviewId(Long interviewId);
-    List<InterviewInterviewee> findByInterviewee_IntervieweeId(Long intervieweeId); // 수정된 부분
-    Optional<InterviewInterviewee> findByInterviewIdAndIntervieweeId(Long interviewId, Long intervieweeId);
-
-    long countByInterviewId(Long interviewId);
+    List<InterviewInterviewee> findByInterview_InterviewId(Long interviewId); // 수정된 부분
+    List<InterviewInterviewee> findByInterviewee_IntervieweeId(Long intervieweeId); // 이전에 수정한 부분
+    Optional<InterviewInterviewee> findByInterview_InterviewIdAndInterviewee_IntervieweeId(Long interviewId, Long intervieweeId); // 수정된 부분
+    
+    long countByInterview_InterviewId(Long interviewId); // 수정된 부분
 
     @Query("SELECT ii FROM InterviewInterviewee ii JOIN FETCH ii.interview JOIN FETCH ii.interviewee")
     List<InterviewInterviewee> findAllWithInterviewAndInterviewee();

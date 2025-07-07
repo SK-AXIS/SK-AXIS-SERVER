@@ -197,7 +197,7 @@ public class IntervieweeService {
             List<Interviewee> interviewees = new ArrayList<>();
             for (Interview interview : interviews) {
                 List<InterviewInterviewee> interviewInterviewees =
-                        interviewIntervieweeRepository.findByInterviewId(interview.getInterviewId());
+                        interviewIntervieweeRepository.findByInterview_InterviewId(interview.getInterviewId());
 
                 for (InterviewInterviewee ii : interviewInterviewees) {
                     Interviewee interviewee = intervieweeRepository.findById(ii.getInterviewee().getIntervieweeId())
@@ -251,7 +251,7 @@ public class IntervieweeService {
 
                 // 해당 면접의 지원자들 조회
                 List<InterviewInterviewee> interviewInterviewees =
-                        interviewIntervieweeRepository.findByInterviewId(interview.getInterviewId());
+                        interviewIntervieweeRepository.findByInterview_InterviewId(interview.getInterviewId());
                 String status = interview.getStatus().getDescription();
 
                 List<String> interviewees = new ArrayList<>();
@@ -305,7 +305,7 @@ public class IntervieweeService {
 
             // 해당 면접의 지원자들
             List<InterviewInterviewee> interviewInterviewees =
-                    interviewIntervieweeRepository.findByInterviewId(interview.getInterviewId());
+                    interviewIntervieweeRepository.findByInterview_InterviewId(interview.getInterviewId());
             List<String> candidateIds = new ArrayList<>();
 
             for (InterviewInterviewee ii : interviewInterviewees) {
@@ -403,7 +403,7 @@ public class IntervieweeService {
 
                 // 해당 면접의 지원자들 조회
                 List<InterviewInterviewee> interviewInterviewees =
-                        interviewIntervieweeRepository.findByInterviewId(interview.getInterviewId());
+                        interviewIntervieweeRepository.findByInterview_InterviewId(interview.getInterviewId());
 
                 List<String> interviewees = new ArrayList<>();
                 for (InterviewInterviewee ii : interviewInterviewees) {

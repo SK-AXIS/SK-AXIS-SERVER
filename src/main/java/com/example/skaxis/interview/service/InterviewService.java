@@ -37,7 +37,7 @@ public class InterviewService {
     private final UserRepository userRepository;
     @Transactional
     public void updateIntervieweeSchedule(Long interviewId, Long intervieweeId, UpdateIntervieweeRequestDto requestDto) {
-        InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository.findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
+        InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository.findByInterview_InterviewIdAndInterviewee_IntervieweeId(interviewId, intervieweeId)
                 .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
     
         Interview interview = interviewInterviewee.getInterview();
@@ -124,7 +124,7 @@ public class InterviewService {
     public void deleteInterviewInterviewee(Long interviewId, Long intervieweeId) {
         // 1. InterviewInterviewee 찾기
         InterviewInterviewee interviewInterviewee = interviewIntervieweeRepository
-            .findByInterviewIdAndIntervieweeId(interviewId, intervieweeId)
+            .findByInterview_InterviewIdAndInterviewee_IntervieweeId(interviewId, intervieweeId)
             .orElseThrow(() -> new RuntimeException("Interview-Interviewee mapping not found"));
         
         // 2. 관련된 Question 삭제
@@ -135,7 +135,7 @@ public class InterviewService {
         interviewIntervieweeRepository.delete(interviewInterviewee);
         
         // 4. 해당 Interview에 더 이상 InterviewInterviewee가 없으면 Interview도 삭제
-        long remainingCount = interviewIntervieweeRepository.countByInterviewId(interviewId);
+        long remainingCount = interviewIntervieweeRepository.countByInterview_InterviewId(interviewId);
         if (remainingCount == 0) {
             interviewRepository.deleteById(interviewId);
         }
@@ -149,7 +149,7 @@ public class InterviewService {
         questionRepository.deleteAll(questions);
         
         // 2. 관련된 InterviewInterviewee 삭제
-        List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByInterviewId(interviewId);
+        List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByInterview_InterviewId(interviewId);
         interviewIntervieweeRepository.deleteAll(interviewInterviewees);
         
         // 3. Interview 삭제
