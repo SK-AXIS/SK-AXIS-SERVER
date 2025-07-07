@@ -149,7 +149,7 @@ public class IntervieweeService {
             // 면접 일정 수정 로직
             if (requestDto.getStartAt() != null && requestDto.getEndAt() != null) {
                 List<InterviewInterviewee> interviewInterviewees = 
-                    interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+                    interviewIntervieweeRepository.findByInterviewee_IntervieweeId(intervieweeId);
                 
                 if (interviewInterviewees.isEmpty()) {
                     throw new RuntimeException("해당 면접 대상자에 대한 면접 일정이 존재하지 않습니다.");

@@ -261,7 +261,7 @@ public class InterviewController {
             // 면접 상태를 COMPLETED로 변경
             for (Long intervieweeId : intervieweeIds) {
                 List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository
-                        .findByIntervieweeId(intervieweeId);
+                        .findByInterviewee_IntervieweeId(intervieweeId);
 
                 for (InterviewInterviewee ii : interviewInterviewees) {
                     Interview interview = ii.getInterview();
@@ -469,7 +469,7 @@ public class InterviewController {
 
             // 면접 정보 조회 (intervieweeId로 interview 찾기)
             List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository
-                    .findByIntervieweeId(intervieweeId);
+                    .findByInterviewee_IntervieweeId(intervieweeId);
 
             if (interviewInterviewees.isEmpty()) {
                 log.warn("해당 지원자의 면접 정보를 찾을 수 없음: intervieweeId={}", intervieweeId);

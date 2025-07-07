@@ -31,7 +31,7 @@ public class InternalQuestionService {
         
         for (Long intervieweeId : intervieweeIds) {
             // 면접자의 면접 세션 조회
-            List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+            List<InterviewInterviewee> interviewInterviewees = interviewIntervieweeRepository.findByInterviewee_IntervieweeId(intervieweeId);
             
             if (interviewInterviewees.isEmpty()) {
                 continue; // 면접 세션이 없으면 건너뜀
@@ -82,7 +82,7 @@ public class InternalQuestionService {
         for (Long intervieweeId : intervieweeIds) {
             // 1. intervieweeId로 InterviewInterviewee 찾기
             List<InterviewInterviewee> interviewInterviewees = 
-                interviewIntervieweeRepository.findByIntervieweeId(intervieweeId);
+                interviewIntervieweeRepository.findByInterviewee_IntervieweeId(intervieweeId);
             
             if (!interviewInterviewees.isEmpty()) {
                 // 2. 가장 최근 면접의 interviewId 가져오기
