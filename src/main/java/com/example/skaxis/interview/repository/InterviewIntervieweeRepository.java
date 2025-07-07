@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface InterviewIntervieweeRepository extends JpaRepository<InterviewInterviewee, Long> {
     List<InterviewInterviewee> findByInterviewId(Long interviewId);
-    List<InterviewInterviewee> findByIntervieweeId(Long intervieweeId);
+    List<InterviewInterviewee> findByInterviewee_IntervieweeId(Long intervieweeId); // 수정된 부분
     Optional<InterviewInterviewee> findByInterviewIdAndIntervieweeId(Long interviewId, Long intervieweeId);
 
     long countByInterviewId(Long interviewId);
