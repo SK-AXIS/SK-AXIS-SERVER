@@ -457,13 +457,13 @@ public class InterviewController {
             String sttPath = resultNode.path("stt_path").asText("");
 
             // 언어적/비언어적 평가 결과 추출
-            JsonNode languageEval = resultNode.path("language_evaluation");
+            JsonNode verbalEval = resultNode.path("verbal_evaluation"); // <-- 변경
             JsonNode nonverbalEval = resultNode.path("nonverbal_evaluation");
 
             String comment = String.format(
                     "언어적 평가: %s (점수: %d)\n비언어적 평가: %s (점수: %d)",
-                    languageEval.path("reason").asText("평가 없음"),
-                    languageEval.path("score").asInt(0),
+                    verbalEval.path("reason").asText("평가 없음"), // <-- 변경
+                    verbalEval.path("score").asInt(0), // <-- 변경
                     nonverbalEval.path("reason").asText("평가 없음"),
                     nonverbalEval.path("score").asInt(0));
 
