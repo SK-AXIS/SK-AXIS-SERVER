@@ -24,12 +24,6 @@ public class InterviewInterviewee {
     @Column(name = "interview_interviewee_id")
     private Long id;
     
-    @Column(name = "interview_id", nullable = false)
-    private Long interviewId;
-    
-    @Column(name = "interviewee_id", nullable = false)
-    private Long intervieweeId;
-    
     @Column(name = "score")
     private Integer score;
     
@@ -50,12 +44,12 @@ public class InterviewInterviewee {
     
     // 면접과의 관계
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interview_id", insertable = false, updatable = false)
+    @JoinColumn(name = "interview_id")
     private Interview interview;
     
     // 면접 대상자와의 관계
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interviewee_id", insertable = false, updatable = false)
+    @JoinColumn(name = "interviewee_id")
     private Interviewee interviewee;
     
     @PrePersist

@@ -60,8 +60,16 @@ public class IntervieweeService {
     public Interviewee createInterviewee(CreateIntervieweeRequestDto requestDto) {
         // 입력 검증
         validateCreateIntervieweeRequest(requestDto);
-        
-        // 1. Interview 생성 및 저장
+
+        // 1. Interviewee 생성 및 저장
+        Interviewee interviewee = Interviewee.builder()
+                .name(requestDto.getName())
+                .score(0)
+                .createdAt(LocalDateTime.now())
+                .build();
+        intervieweeRepository.save(interviewee);
+
+        // 2. Interview 생성
         Interview interview = Interview.builder()
                 .roomNo(requestDto.getRoomId())
                 .round(1)
@@ -71,26 +79,25 @@ public class IntervieweeService {
                 .status(Interview.InterviewStatus.SCHEDULED)
                 .createdAt(LocalDateTime.now())
                 .build();
-        interview = interviewService.saveInterview(interview);
-        
-        // 2. Interviewee 생성 및 저장
-        Interviewee interviewee = Interviewee.builder()
-                .name(requestDto.getName())
-                .score(0)
-                .createdAt(LocalDateTime.now())
-                .build();
-        interviewee = intervieweeRepository.save(interviewee);
-        
-        // 3. 관계 설정 및 저장 (한 번만)
+
+        // 3. 관계 설정 및 저장
         InterviewInterviewee interviewInterviewee = InterviewInterviewee.builder()
                 .interview(interview)
                 .interviewee(interviewee)
                 .build();
-        interviewIntervieweeRepository.save(interviewInterviewee);
-        
-        log.info("Created new interviewee: {} with interview ID: {}", 
+
+        // Interview에 InterviewInterviewee 추가
+        if (interview.getInterviewInterviewees() == null) {
+            interview.setInterviewInterviewees(new ArrayList<>());
+        }
+        interview.getInterviewInterviewees().add(interviewInterviewee);
+
+        // Interview 저장 (CascadeType.ALL에 의해 InterviewInterviewee도 저장됨)
+        interviewService.saveInterview(interview);
+
+        log.info("Created new interviewee: {} with interview ID: {}",
                  interviewee.getName(), interview.getInterviewId());
-        
+
         return interviewee;
     }
 
@@ -193,7 +200,7 @@ public class IntervieweeService {
                         interviewIntervieweeRepository.findByInterviewId(interview.getInterviewId());
 
                 for (InterviewInterviewee ii : interviewInterviewees) {
-                    Interviewee interviewee = intervieweeRepository.findById(ii.getIntervieweeId())
+                    Interviewee interviewee = intervieweeRepository.findById(ii.getInterviewee().getIntervieweeId())
                             .orElse(null);
                     if (interviewee != null && !interviewees.contains(interviewee)) {
                         interviewees.add(interviewee);
@@ -249,7 +256,7 @@ public class IntervieweeService {
 
                 List<String> interviewees = new ArrayList<>();
                 for (InterviewInterviewee ii : interviewInterviewees) {
-                    Interviewee interviewee = intervieweeRepository.findById(ii.getIntervieweeId())
+                    Interviewee interviewee = intervieweeRepository.findById(ii.getInterviewee().getIntervieweeId())
                             .orElse(null);
                     if (interviewee != null && interviewee.getName() != null) {
                         interviewees.add(interviewee.getName());
@@ -302,7 +309,7 @@ public class IntervieweeService {
             List<String> candidateIds = new ArrayList<>();
 
             for (InterviewInterviewee ii : interviewInterviewees) {
-                candidateIds.add("c" + ii.getIntervieweeId());
+                candidateIds.add("c" + ii.getInterviewee().getIntervieweeId());
             }
 
             TimeSlotDto timeSlot = new TimeSlotDto(
@@ -400,8 +407,7 @@ public class IntervieweeService {
 
                 List<String> interviewees = new ArrayList<>();
                 for (InterviewInterviewee ii : interviewInterviewees) {
-                    Interviewee interviewee = intervieweeRepository.findById(ii.getIntervieweeId())
-                            .orElse(null);
+                    Interviewee interviewee = intervieweeRepository.findById(ii.getInterviewee().getIntervieweeId()).orElse(null);
                     if (interviewee != null && interviewee.getName() != null) {
                         interviewees.add(interviewee.getName());
                     }
